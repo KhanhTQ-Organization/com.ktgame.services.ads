@@ -6,7 +6,7 @@ namespace com.ktgame.services.ads
 	public interface IAdService : IService, IInitializable
 	{
 		IAdAdapter Ad { get; }
-
+		IAdAdapter AdBackFill { get; }
 		void SetPause(bool pause);
 	}
 }
