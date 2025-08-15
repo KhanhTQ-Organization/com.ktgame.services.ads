@@ -63,6 +63,8 @@ namespace com.ktgame.services.ads
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobBannerUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeUnitId;
+		
+		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeInterUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobRewardedVideoUnitId;
 
@@ -109,7 +111,7 @@ namespace com.ktgame.services.ads
 		public string AndroidAdmobAppKey => _androidAdmobAppKey;
 		public string AndroidAdmobAppOpenUnitId => _androidAdmobAppOpenUnitId;
 		public string AndroidAdmobBannerUnitId => _androidAdmobBannerUnitId;
-		
+		public string AndroidAdmobNativeInterUnitId => _androidAdmobNativeInterUnitId;
 		public string AndroidAdmobNativeUnitId => _androidAdmobNativeUnitId;
 		public string AndroidAdmobRewardedVideoUnitId => _androidAdmobRewardedVideoUnitId;
 		public string AndroidAdmobInterstitialUnitId => _androidAdmobInterstitialUnitId;

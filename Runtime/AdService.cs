@@ -1,6 +1,9 @@
 using com.ktgame.ads.core;
 using com.ktgame.ads.core.extensions;
 using com.ktgame.core;
+using com.ktgame.core.di;
+using com.ktgame.services.remote_config;
+using com.ktgame.services.scene;
 
 #if MAX_APPLOVIN
 using com.ktgame.ads.max_applovin;
@@ -8,6 +11,7 @@ using com.ktgame.ads.max_applovin;
 
 #if ADMOB
 using com.ktgame.ads.admob;
+using GoogleMobileAds.Ump.Api;
 #endif
 
 #if ADJUST_ANALYTICS
@@ -26,7 +30,9 @@ namespace com.ktgame.services.ads
 	[Service(typeof(IAdService))]
 	public class AdService : MonoBehaviour, IAdService
 	{
-		public int Priority => 0;
+		[Inject] private IRemoteConfigService _remoteConfigService;
+		
+		public int Priority => 2;
 		public bool Initialized { get; set; }
 		public IAdAdapter Ad { private set; get; }
 		public IAdAdapter AdBackFill { private set; get; }
@@ -36,25 +42,39 @@ namespace com.ktgame.services.ads
 		private IRewardVideoAdapter _rewardVideoAdapter;
 		private IAppOpenAdapter _appOpenAdapter;
 		private IMRecAdapter _mRecAdapter;
-
+		
 		private IBannerAdapter _bannerAdBackFillAdapter;
 		private IInterstitialAdapter _interstitialBackFillAdapter;
+		private IInterstitialAdapter _interstitialImageBackFillAdapter;
 		private IRewardVideoAdapter _rewardVideoBackFillAdapter;
 		private IAppOpenAdapter _appOpenBackFillAdapter;
+		private INativeAdapter _nativeAdapterBackFill;
+		private INativeAdapter _nativeInterAdapterBackFill;
 
 		private AdServiceSettings _settings;
-
-		public UniTask OnInitialize(IArchitecture architecture)
+#if ADMOB	
+		private ConsentForm _consentForm;
+#endif
+		public async UniTask OnInitialize(IArchitecture architecture)
 		{
 			_settings = AdServiceSettings.Instance;
+			
+#if ADMOB
+			ConsentRequestParameters request = new ConsentRequestParameters
+			{
+				TagForUnderAgeOfConsent = false,
+			};
 
-			SetAdsMaxAppLovin();
-			SetAdsBackFill();
-
-			return UniTask.CompletedTask;
+			ConsentInformation.Update(request, OnConsentInfoUpdated);
+#endif
+			await UniTask.DelaySeconds(1f);
+			await SetAdsMaxAppLovin();
+			await SetAdsBackFill();
+			
+			Initialized = true;
 		}
 
-		private void SetAdsMaxAppLovin()
+		private async UniTask SetAdsMaxAppLovin()
 		{
 #if UNITY_ANDROID && MAX_APPLOVIN
 			Ad = new MaxApplovinAdapter(_settings.AndroidMaxApplovinAppKey);
@@ -204,7 +224,7 @@ namespace com.ktgame.services.ads
 			{
 				Ad.SetMRec(_mRecAdapter);
 			}
-
+			
 			Ad.Initialize(isInitialized =>
 			{
 				if (isInitialized)
@@ -216,9 +236,10 @@ namespace com.ktgame.services.ads
 			});
 		}
 
-		private void SetAdsBackFill()
+		private async UniTask SetAdsBackFill()
 		{
 #if UNITY_ANDROID && ADMOB
+			
 			AdBackFill = new AdMobAdapter(_settings.AndroidMaxApplovinAppKey);
 
 			if (!string.IsNullOrEmpty(_settings.AndroidAdmobBannerUnitId))
@@ -230,15 +251,47 @@ namespace com.ktgame.services.ads
 			{
 				_interstitialBackFillAdapter = new AdMobInterstitial(_settings.AndroidAdmobInterstitialUnitId);
 			}
+			
+			var idImage = _remoteConfigService.GetValue(RemoteConfigKey.intertitial_image_ad_id).String;
+			if (!string.IsNullOrEmpty(_settings.AndroidAdmobInterstitialUnitId))
+			{
+				_interstitialImageBackFillAdapter = new AdMobInterstitial(idImage);
+			}
 
 			if (!string.IsNullOrEmpty(_settings.AndroidAdmobRewardedVideoUnitId))
 			{
 				_rewardVideoBackFillAdapter = new AdmobRewardVideo(_settings.AndroidAdmobRewardedVideoUnitId);
 			}
 
-			if (!string.IsNullOrEmpty(_settings.AndroidAdmobAppOpenUnitId))
+			var idAOA = _remoteConfigService.GetValue(RemoteConfigKey.open_ad_id).String;
+			if (!string.IsNullOrEmpty(idAOA))
+			{
+				_appOpenBackFillAdapter = new AdMobAppOpen(idAOA);
+			}
+			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobAppOpenUnitId))
 			{
 				_appOpenBackFillAdapter = new AdMobAppOpen(_settings.AndroidAdmobAppOpenUnitId);
+			}
+
+			var idNative = _remoteConfigService.GetValue(RemoteConfigKey.native_ad_id).String;
+			Debug.Log(idNative);
+			if (!string.IsNullOrEmpty(idNative))
+			{
+				_nativeAdapterBackFill = new AdMobNative(idNative);
+			}
+			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobNativeUnitId))
+			{
+				_nativeAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeUnitId);
+			}
+			
+			var idNativeInter = _remoteConfigService.GetValue(RemoteConfigKey.native_inter_ad_id).String;
+			if (!string.IsNullOrEmpty(idNativeInter))
+			{
+				_nativeInterAdapterBackFill = new AdMobNative(idNativeInter);
+			}
+			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobNativeInterUnitId))
+			{
+				_nativeInterAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeInterUnitId);
 			}
 			
 #elif UNITY_IOS
@@ -254,6 +307,11 @@ namespace com.ktgame.services.ads
 				_interstitialBackFillAdapter = new AdMobInterstitial(_settings.IOSAdmobInterstitialUnitId);
 			}
 
+			if (!string.IsNullOrEmpty(_settings.IOSAdmobInterstitialUnitId))
+			{
+				_interstitialImageBackFillAdapter = new AdMobInterstitial(_settings.IOSAdmobInterstitialUnitId);
+			}
+
 			if (!string.IsNullOrEmpty(_settings.IOSAdmobRewardedVideoUnitId))
 			{
 				_rewardVideoBackFillAdapter = new AdmobRewardVideo(_settings.IOSAdmobRewardedVideoUnitId);
@@ -267,10 +325,12 @@ namespace com.ktgame.services.ads
 			AdBackFill = new NullAdAdapter();
 			_bannerAdBackFillAdapter = NullBannerAdapter.Instance;
 			_interstitialBackFillAdapter = NullInterstitialAdapter.Instance;
+			_interstitialImageBackFillAdapter = NullInterstitialAdapter.Instance;
 			_rewardVideoBackFillAdapter = NullRewardVideoAdapter.Instance;
 			_appOpenBackFillAdapter = NullAppOpenAdapter.Instance;
+			_nativeAdapterBackFill = NullNativeAdapter.Instance;
+			_nativeInterAdapterBackFill = NullNativeAdapter.Instance;
 #endif
-
 			var requestStrategy = new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay);
 
 			if (_bannerAdBackFillAdapter != null)
@@ -281,6 +341,11 @@ namespace com.ktgame.services.ads
 			if (_interstitialBackFillAdapter != null)
 			{
 				_interstitialBackFillAdapter = new AutoRequestInterstitial(requestStrategy, _interstitialBackFillAdapter);
+			}
+			
+			if (_interstitialImageBackFillAdapter != null)
+			{
+				_interstitialImageBackFillAdapter = new AutoRequestInterstitial(requestStrategy, _interstitialImageBackFillAdapter);
 			}
 
 			if (_rewardVideoBackFillAdapter != null)
@@ -293,6 +358,16 @@ namespace com.ktgame.services.ads
 				_appOpenBackFillAdapter = new AutoRequestAppOpen(requestStrategy, _appOpenBackFillAdapter);
 			}
 
+			if (_nativeAdapterBackFill != null)
+			{
+				_nativeAdapterBackFill = new AutoRequestNative(requestStrategy, _nativeAdapterBackFill);
+			}
+
+			if (_nativeInterAdapterBackFill != null)
+			{
+				_nativeInterAdapterBackFill = new AutoRequestNative(requestStrategy, _nativeInterAdapterBackFill);
+			}
+			
 #if FIREBASE_ANALYTICS
             if (_bannerAdBackFillAdapter != null)
             {
@@ -303,18 +378,63 @@ namespace com.ktgame.services.ads
             {
                 _interstitialBackFillAdapter = new FirebaseAdRevenueInterstitial(_interstitialBackFillAdapter);    
             }
+			
+			if (_interstitialImageBackFillAdapter != null)
+            {
+				_interstitialImageBackFillAdapter = new FirebaseAdRevenueInterstitial(_interstitialImageBackFillAdapter);    
+            }
 
             if (_rewardVideoBackFillAdapter != null)
             {
                 _rewardVideoBackFillAdapter = new FirebaseAdRevenueRewardVideo(_rewardVideoBackFillAdapter);    
             }
-			
-			if (_mRecAdapter != null)
+
+			if (_nativeAdapterBackFill != null)
 			{
-				_mRecAdapter = new FirebaseAdRevenueMRec(_mRecAdapter);    
+				_nativeAdapterBackFill = new FirebaseAdRevenueNative(_nativeAdapterBackFill);
+			}
+			
+			if (_nativeInterAdapterBackFill != null)
+			{
+				_nativeInterAdapterBackFill = new FirebaseAdRevenueNative(_nativeInterAdapterBackFill);
 			}
 #endif
 
+			if (_bannerAdBackFillAdapter != null)
+			{
+				AdBackFill.SetBanner(_bannerAdBackFillAdapter);
+			}
+
+			if (_interstitialBackFillAdapter != null)
+			{
+				AdBackFill.SetInterstitial(_interstitialBackFillAdapter);
+			}
+			
+			if (_interstitialImageBackFillAdapter != null)
+			{
+				AdBackFill.SetInterstitialImage(_interstitialImageBackFillAdapter);
+			}
+
+			if (_rewardVideoBackFillAdapter != null)
+			{
+				AdBackFill.SetRewardVideo(_rewardVideoBackFillAdapter);
+			}
+
+			if (_appOpenBackFillAdapter != null)
+			{
+				AdBackFill.SetAppOpen(_appOpenBackFillAdapter);
+			}
+
+			if (_nativeAdapterBackFill != null)
+			{
+				AdBackFill.SetNative(_nativeAdapterBackFill);
+			}
+			
+			if (_nativeInterAdapterBackFill != null)
+			{
+				AdBackFill.SetNativeInter(_nativeInterAdapterBackFill);
+			}
+			
 #if ADMOB
 			AdBackFill.Initialize(isInitialized =>
 			{
@@ -327,7 +447,54 @@ namespace com.ktgame.services.ads
 			});
 #endif
 		}
+		
+#if ADMOB
+		private void OnConsentInfoUpdated(FormError error)
+		{
+			if (error != null)
+			{
+				UnityEngine.Debug.LogError(error);
+				return;
+			}
 
+			if (ConsentInformation.IsConsentFormAvailable())
+			{
+				LoadConsentForm();
+			}
+		}
+
+		private void LoadConsentForm()
+		{
+			ConsentForm.Load(OnLoadConsentForm);
+		}
+		
+		private void OnLoadConsentForm(ConsentForm consentForm, FormError error)
+		{
+			if (error != null)
+			{
+				Debug.LogError(error);
+				return;
+			}
+
+			_consentForm = consentForm;
+
+			if (ConsentInformation.ConsentStatus == ConsentStatus.Required)
+			{
+				_consentForm.Show(OnShowForm);
+			}
+		}
+		
+		private void OnShowForm(FormError error)
+		{
+			if (error != null)
+			{
+				Debug.LogError(error);
+				return;
+			}
+
+			LoadConsentForm();
+		}
+#endif
 		public void SetPause(bool pause)
 		{
 			Ad?.SetPause(pause);
