@@ -102,25 +102,34 @@ namespace com.ktgame.services.ads
 			}
 
 			_appOpenAdapter = NullAppOpenAdapter.Instance;
-#elif UNITY_IOS
-            Ad = new MaxApplovinAdapter(_settings.IOSMaxApplovinAppKey);
+#elif UNITY_IOS && MAX_APPLOVIN
+			Ad = new MaxApplovinAdapter(_settings.IOSMaxApplovinAppKey);
 
-            if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinBannerUnitId))
-            {
-                _bannerAdapter = new MaxApplovinBanner(_settings.IOSMaxApplovinBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
-            }
+			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinBannerUnitId))
+			{
+				_bannerAdapter = new MaxApplovinBanner(_settings.IOSMaxApplovinBannerUnitId, _settings.BannerSize,
+					_settings.BannerPosition);
+			}
 
-            if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinInterstitialUnitId))
-            {
-                _interstitialAdapter = new MaxApplovinInterstitial(_settings.IOSMaxApplovinInterstitialUnitId);
-            }
+			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinInterstitialUnitId))
+			{
+				_interstitialAdapter = new MaxApplovinInterstitial(_settings.IOSMaxApplovinInterstitialUnitId);
+			}
 
-            if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinRewardedVideoUnitId))
-            {
-                _rewardVideoAdapter = new MaxApplovinRewardVideo(_settings.IOSMaxApplovinRewardedVideoUnitId);
-            }
+			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinRewardedVideoUnitId))
+			{
+				_rewardVideoAdapter = new MaxApplovinRewardVideo(_settings.IOSMaxApplovinRewardedVideoUnitId);
+			}
 
-            _appOpenAdapter = NullAppOpenAdapter.Instance;
+			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinRewardedVideoUnitId))
+			{
+				_appOpenAdapter = new MaxApplovinAppOpen(_settings.IOSMaxApplovinAppOpenUnitId);
+			}
+
+			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinMRecUnitId))
+			{
+				_mRecAdapter = new MaxApplovinMRec(_settings.IOSMaxApplovinMRecUnitId,_settings.MRecDp,_settings.MRecPosition);
+			}
 #else
 			Ad = new NullAdAdapter();
 			_bannerAdapter = NullBannerAdapter.Instance;
@@ -294,7 +303,7 @@ namespace com.ktgame.services.ads
 				_nativeInterAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeInterUnitId);
 			}
 			
-#elif UNITY_IOS
+#elif UNITY_IOS && ADMOB
 			AdBackFill = new AdMobAdapter(_settings.IOSAdmobAppOpenUnitId);
 
 			if (!string.IsNullOrEmpty(_settings.IOSAdmobBannerUnitId))

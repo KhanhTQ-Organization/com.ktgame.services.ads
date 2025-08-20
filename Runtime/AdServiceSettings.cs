@@ -40,6 +40,8 @@ namespace com.ktgame.services.ads
 
 		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinMrecUnitId;
 
+		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinAppOpenUnitId;
+
 		[SerializeField] [TabGroup("Amazon")] private string _androidAmazonAppKey;
 
 		[SerializeField] [TabGroup("Amazon")] private string _androidAmazonBannerUnitId;
@@ -63,7 +65,7 @@ namespace com.ktgame.services.ads
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobBannerUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeUnitId;
-		
+
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeInterUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobRewardedVideoUnitId;
@@ -79,7 +81,7 @@ namespace com.ktgame.services.ads
 		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobInterstitialUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobBannerUnitId;
-		
+
 		[SerializeField] private BannerSize _bannerSize = BannerSize.Standard;
 
 		[SerializeField] private BannerPosition _bannerPosition = BannerPosition.Bottom;
@@ -116,14 +118,14 @@ namespace com.ktgame.services.ads
 		public string AndroidAdmobRewardedVideoUnitId => _androidAdmobRewardedVideoUnitId;
 		public string AndroidAdmobInterstitialUnitId => _androidAdmobInterstitialUnitId;
 		public string IOSAdmobAppOpenUnitId => _iOSAdmobAppOpenUnitId;
-		
+
 		public string IOSAdmobNativeUnitId => _iOSAdmobNativeUnitId;
-		
+
 		public string IOSAdmobRewardedVideoUnitId => _iOSAdmobRewardedVideoUnitId;
-		
+
 		public string IOSAdmobInterstitialUnitId => _iOSAdmobInterstitialUnitId;
 		public string IOSAdmobBannerUnitId => _iOSAdmobBannerUnitId;
-		
+
 		public string IOSMaxApplovinMRecUnitId => _iOSMaxApplovinMrecUnitId;
 
 		public string IOSIronSourceAppId => _iOSIronSourceAppId;
@@ -135,6 +137,8 @@ namespace com.ktgame.services.ads
 		public string IOSMaxApplovinInterstitialUnitId => _iOSMaxApplovinInterstitialUnitId;
 
 		public string IOSMaxApplovinRewardedVideoUnitId => _iOSMaxApplovinRewardedVideoUnitId;
+		
+		public string IOSMaxApplovinAppOpenUnitId => _iOSMaxApplovinAppOpenUnitId;
 
 		public string AndroidAmazonAppKey => _androidAmazonAppKey;
 
