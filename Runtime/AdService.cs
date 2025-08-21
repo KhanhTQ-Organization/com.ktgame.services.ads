@@ -58,7 +58,6 @@ namespace com.ktgame.services.ads
 		public async UniTask OnInitialize(IArchitecture architecture)
 		{
 			_settings = AdServiceSettings.Instance;
-			
 #if ADMOB
 			ConsentRequestParameters request = new ConsentRequestParameters
 			{
