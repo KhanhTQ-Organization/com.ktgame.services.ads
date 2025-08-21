@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.5...v1.0.6) (2025-08-21)
+
+
+### Bug Fixes
+
+* adasmdef maxsdk ([c6a97c4](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/c6a97c46aa6b0978d5e742f535111b1c3ab99ef3))
+
 ## [1.0.5](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.4...v1.0.5) (2025-08-21)
 
 
