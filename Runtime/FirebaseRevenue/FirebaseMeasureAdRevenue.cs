@@ -38,9 +38,9 @@ namespace com.ktgame.services.ads.firebase_ad_revenue
         {
             switch (adPlatform)
             {
-                case core.AdPlatform.Max: return "AppLovin";
-                case core.AdPlatform.IronSource: return "ironSource";
-                case core.AdPlatform.Admob: return "AdMob";
+                case com.ktgame.ads.core.AdPlatform.Max: return "AppLovin";
+                case com.ktgame.ads.core.AdPlatform.IronSource: return "ironSource";
+                case com.ktgame.ads.core.AdPlatform.Admob: return "AdMob";
                 default: return string.Empty;
             }
         }
