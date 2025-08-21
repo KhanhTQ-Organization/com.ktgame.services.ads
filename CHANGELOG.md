@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.7...v1.0.8) (2025-08-21)
+
+
+### Bug Fixes
+
+* load aoa ([a5321b1](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/a5321b1769b96e3501ad339b5a3b61663e4e3395))
+
 ## [1.0.7](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.6...v1.0.7) (2025-08-21)
 
 
