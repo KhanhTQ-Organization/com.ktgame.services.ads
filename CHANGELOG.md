@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.6...v1.0.7) (2025-08-21)
+
+
+### Bug Fixes
+
+* update tracking ([95497dc](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/95497dc7bc450704a9ef412745be97f4b22c5caa))
+
 ## [1.0.6](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.5...v1.0.6) (2025-08-21)
 
 
