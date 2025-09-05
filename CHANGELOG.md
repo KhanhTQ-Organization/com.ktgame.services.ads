@@ -1,3 +1,10 @@
+## [1.0.10](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.9...v1.0.10) (2025-08-21)
+
+
+### Bug Fixes
+
+* add asmdef ([be1dfd5](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/be1dfd584e5cc5d9cc1dfcab123853054f917211))
+
 ## [1.0.9](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.8...v1.0.9) (2025-08-21)
 
 
