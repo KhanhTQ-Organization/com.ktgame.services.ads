@@ -28,7 +28,7 @@ namespace com.ktgame.ads.admob
 		public event Action OnClosed;
 		public event Action<ImpressionData> OnImpressionSuccess;
 		private AdPlacement AdPlacement { get; }
-#if ADMOB
+#if ADMOB_NATIVE
 		public NativeAd CurrentNativeAd => _currentNativeAd;
 		public Queue<NativeAd> NativeAdsPreload => _nativeAdsPreload;
 		public List<NativeAd> NativeAdsTemp => _nativeAdsTemp;
@@ -48,7 +48,7 @@ namespace com.ktgame.ads.admob
 		{
 			UnitId = unitId;
 			AdPlacement = new AdPlacement("Native");
-#if ADMOB
+#if ADMOB_NATIVE
 			_nativeAdsPreload = new Queue<NativeAd>();
 			_nativeAdsTemp = new List<NativeAd>();
 #endif
@@ -61,7 +61,7 @@ namespace com.ktgame.ads.admob
 
 		private async UniTask LoadAsync()
 		{
-#if ADMOB
+#if ADMOB_NATIVE
 			await UniTask.DelaySeconds(2);
 			if (_nativeAdsPreload.Count >= _maxPreloadCount)
 			{
@@ -91,7 +91,7 @@ namespace com.ktgame.ads.admob
 				Debug.LogWarning("No Native Ads ready to show.");
 				return;
 			}
-#if ADMOB
+#if ADMOB_NATIVE
 			_currentNativeAd = _nativeAdsPreload.Dequeue();
 #endif
 			OnShowSucceeded?.Invoke(AdPlacement);
@@ -106,7 +106,7 @@ namespace com.ktgame.ads.admob
 
 		public void Destroy()
 		{
-#if ADMOB
+#if ADMOB_NATIVE
 			if (_currentNativeAd != null)
 			{
 				_currentNativeAd.Destroy();
@@ -121,7 +121,7 @@ namespace com.ktgame.ads.admob
 #endif
 		}
 		
-#if ADMOB
+#if ADMOB_NATIVE
 		private void OnLoadSucceededHandler(object sender, NativeAdEventArgs nativeAdEventArgs)
 		{
 			var nativeAd = nativeAdEventArgs.nativeAd;

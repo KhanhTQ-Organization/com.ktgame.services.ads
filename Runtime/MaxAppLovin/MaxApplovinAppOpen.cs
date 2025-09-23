@@ -41,7 +41,7 @@ namespace com.ktgame.ads.max_applovin
         public void Load()
         {
 #if MAX_APPLOVIN
-            MaxSdkUnityEditor.LoadAppOpenAd(UnitId);
+            MaxSdk.LoadAppOpenAd(UnitId);
 #endif
         }
 

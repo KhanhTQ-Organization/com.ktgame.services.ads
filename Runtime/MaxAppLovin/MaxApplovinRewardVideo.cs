@@ -64,17 +64,6 @@ namespace com.ktgame.ads.max_applovin
         {
             var impressionData = adInfo.ToImpressionData(AdFormat.RewardedVideo);
             OnImpressionSuccess?.Invoke(impressionData);
-#if APPSFLYER_ANALYTICS
-            Dictionary<string, string> additionalParams = new Dictionary<string, string>
-            {
-                { AdRevenueScheme.COUNTRY, MaxSdk.GetSdkConfiguration().CountryCode },
-                { AdRevenueScheme.AD_UNIT, adInfo.AdUnitIdentifier },
-                { AdRevenueScheme.AD_TYPE, adInfo.AdFormat },
-                { AdRevenueScheme.PLACEMENT, adInfo.Placement }
-            };
-            var logRevenue = new AFAdRevenueData(adInfo.NetworkName, MediationNetwork.ApplovinMax, "USD", adInfo.Revenue);
-            AppsFlyer.logAdRevenue(logRevenue, additionalParams);
-#endif
         }
 
         private void LoadSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
@@ -86,9 +75,6 @@ namespace com.ktgame.ads.max_applovin
         {
             var adError = errorInfo.Code.ToErrorCode(AdPlacement);
             OnLoadFailed?.Invoke(adError);
-#if APPSFLYER_ANALYTICS
-            AppsFlyer.sendEvent("af_rewarded_load_fail", null);
-#endif
         }
 
         private void ShowFailedHandler(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
@@ -100,9 +86,6 @@ namespace com.ktgame.ads.max_applovin
         private void ShowSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
             OnVideoOpened?.Invoke();
-#if APPSFLYER_ANALYTICS
-            AppsFlyer.sendEvent("af_rewarded_displayed", null);
-#endif
         }
 
         private void ClickedHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
@@ -118,9 +101,6 @@ namespace com.ktgame.ads.max_applovin
         private void ReceivedRewardHandler(string adUnitId, MaxSdkBase.Reward reward, MaxSdkBase.AdInfo adInfo)
         {
             OnRewarded?.Invoke(AdPlacement);
-#if APPSFLYER_ANALYTICS
-            AppsFlyer.sendEvent("af_rewarded_completed", null);
-#endif
         }
 #endif
     }

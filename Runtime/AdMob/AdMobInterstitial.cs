@@ -85,24 +85,6 @@ namespace com.ktgame.ads.admob
 		{
 			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.AppOpen);
 			OnImpressionSuccess?.Invoke(impressionData);
-#if APPSFLYER_ANALYTICS	
-			double revenue = adValue.Value / 1000000d;
-			var adapterResponseInfo = InterstitialAd.GetResponseInfo().GetLoadedAdapterResponseInfo();
-			var mediationGroupName = InterstitialAd.GetResponseInfo().GetResponseExtras()["mediation_group_name"];
-			
-			Dictionary<string, string> additionalParams = new Dictionary<string, string>
-			{
-				{ "ad_platform", "admob" },
-				{ "ad_source", adapterResponseInfo.AdSourceInstanceName },
-				{ "ad_unit_name", InterstitialAd.GetAdUnitID() },
-				{ "ad_format", "interstitial" },
-				{ "placement", InterstitialAd.GetAdUnitID() },
-				{ "value", revenue.ToString() },
-				{ "currency", "USD" },
-			};
-			var logRevenue = new AFAdRevenueData(mediationGroupName,MediationNetwork.GoogleAdMob, "USD", revenue);
-			AppsFlyer.logAdRevenue(logRevenue, additionalParams);
-#endif
 		}
 
 		private void ImpressionSuccessHandler()
