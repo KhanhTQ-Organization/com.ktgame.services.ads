@@ -1,3 +1,10 @@
+## [1.0.11](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.10...v1.0.11) (2025-09-05)
+
+
+### Bug Fixes
+
+* add admob asmdef ([5c5f37c](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/5c5f37c1fe5594ba398fe0046ab7da13100777a7))
+
 ## [1.0.10](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.9...v1.0.10) (2025-08-21)
 
 
