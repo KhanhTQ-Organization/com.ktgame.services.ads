@@ -88,7 +88,7 @@ namespace com.ktgame.ads.admob
 
         private void ImpressionSuccessHandler()
         {
-          OnImpressionSuccess?.Invoke(new ImpressionData(AdPlatform.Admob, "", UnitId, AdFormat.AppOpen, "AppOpen", "USD", 0));
+          OnImpressionSuccess?.Invoke(new ImpressionData(AdPlatform.Admob, "unknown", UnitId, AdFormat.AppOpen, "AppOpen", "USD", 0));
         }
 
         private void ClickedHandler()

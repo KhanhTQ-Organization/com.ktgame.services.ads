@@ -22,7 +22,7 @@ namespace com.ktgame.ads.admob
 		{
 			double revenue = adInfo.Value / 1_000_000.0;
 			string currency = adInfo.CurrencyCode;
-			return new ImpressionData(AdPlatform.Max, "", unitId, adFormat, "", currency, revenue);
+			return new ImpressionData(AdPlatform.Admob, "unknow", unitId, adFormat, adFormat.ToString(), currency, revenue);
 		}
 #endif
 	}

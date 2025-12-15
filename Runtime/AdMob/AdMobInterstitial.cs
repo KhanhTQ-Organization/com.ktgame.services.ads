@@ -23,6 +23,7 @@ namespace com.ktgame.ads.admob
 		public event Action<AdPlacement> OnClicked;
 		public event Action OnClosed;
 		public event Action<ImpressionData> OnImpressionSuccess;
+		public event Action<ImpressionData> OnPaid;
 #if ADMOB
 		public bool IsReady => InterstitialAd != null && InterstitialAd.CanShowAd();
 #else       
@@ -84,12 +85,12 @@ namespace com.ktgame.ads.admob
 		private void AdRevenuePaidHandler(AdValue adValue)
 		{
 			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.AppOpen);
-			OnImpressionSuccess?.Invoke(impressionData);
+			OnPaid?.Invoke(impressionData);
 		}
 
 		private void ImpressionSuccessHandler()
 		{
-			OnImpressionSuccess?.Invoke(new ImpressionData(AdPlatform.Admob, "", UnitId, AdFormat.Interstitial, "Interstitial", "USD", 0));
+			OnImpressionSuccess?.Invoke(new ImpressionData(AdPlatform.Admob, "unknow", UnitId, AdFormat.Interstitial, "Interstitial", "USD", 0));
 		}
 
 		private void ClickedHandler()

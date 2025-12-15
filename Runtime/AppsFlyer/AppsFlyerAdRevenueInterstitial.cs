@@ -1,4 +1,5 @@
 using com.ktgame.ads.core;
+using UnityEngine;
 
 namespace com.ktgame.services.ads.appsflyer_ad_revenue
 {
@@ -11,9 +12,9 @@ namespace com.ktgame.services.ads.appsflyer_ad_revenue
 			_settings = RevenueAdSetting.Instance;
 		}
 		
-		protected override void ImpressionSuccessHandler(ImpressionData impressionData)
+		protected override void AdRevenuePaidHandler(ImpressionData impressionData)
 		{
-			base.ImpressionSuccessHandler(impressionData);
+			base.AdRevenuePaidHandler(impressionData);
 			AppsFlyerMeasureAdRevenue.LogAdRevenueEvent(impressionData);
 		}
 		

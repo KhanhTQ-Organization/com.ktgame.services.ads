@@ -21,6 +21,7 @@ namespace com.ktgame.ads.max_applovin
         public event Action OnVideoClicked;
         public event Action<AdPlacement> OnRewarded;
         public event Action<ImpressionData> OnImpressionSuccess;
+        public event Action<ImpressionData> OnPain;
 
 #if MAX_APPLOVIN
         public bool IsReady => MaxSdk.IsRewardedAdReady(UnitId);
@@ -63,7 +64,7 @@ namespace com.ktgame.ads.max_applovin
         private void RevenuePaidHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
             var impressionData = adInfo.ToImpressionData(AdFormat.RewardedVideo);
-            OnImpressionSuccess?.Invoke(impressionData);
+            OnPain?.Invoke(impressionData);
         }
 
         private void LoadSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)

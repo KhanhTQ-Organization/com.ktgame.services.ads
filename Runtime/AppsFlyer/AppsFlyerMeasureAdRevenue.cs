@@ -18,10 +18,9 @@ namespace com.ktgame.services.ads.appsflyer_ad_revenue
 			{
 				var additionalParams = new Dictionary<string, string>
 				{
-					{ AdRevenueScheme.COUNTRY, Application.systemLanguage.ToString() },
-					{ AdRevenueScheme.AD_UNIT, impressionData.AdUnit },
+					{ AdRevenueScheme.AD_UNIT, impressionData.AdUnit ?? "unknown" },
 					{ AdRevenueScheme.AD_TYPE, impressionData.AdPlatform.ToString() },
-					{ AdRevenueScheme.PLACEMENT, impressionData.AdPlacement }
+					{ AdRevenueScheme.PLACEMENT, impressionData.AdPlacement ?? "unknown" }
 				};
 
 				var revenueData = new AFAdRevenueData(

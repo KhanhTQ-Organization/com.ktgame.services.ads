@@ -19,6 +19,7 @@ namespace com.ktgame.ads.max_applovin
         public event Action<AdPlacement> OnClicked;
         public event Action OnClosed;
         public event Action<ImpressionData> OnImpressionSuccess;
+        public event Action<ImpressionData> OnPaid;
 #if MAX_APPLOVIN
         public bool IsReady => MaxSdk.IsInterstitialReady(UnitId);
 #else
@@ -91,7 +92,7 @@ namespace com.ktgame.ads.max_applovin
         private void AdRevenuePaidHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
             var impressionData = adInfo.ToImpressionData(AdFormat.Interstitial);
-            OnImpressionSuccess?.Invoke(impressionData);
+            OnPaid?.Invoke(impressionData);
         }
 #endif
     }

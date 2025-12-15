@@ -14,13 +14,13 @@ namespace com.ktgame.services.ads.appsflyer_ad_revenue
 		protected override void ImpressionSuccessHandler(ImpressionData impressionData)
 		{
 			base.ImpressionSuccessHandler(impressionData);
-			AppsFlyerMeasureAdRevenue.LogAdRevenueEvent(impressionData);
+			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerBannerTracking.EventImpressionSuccess, null);
 		}
         
 		protected override void LoadFailedHandler(AdError adError)
 		{
 			base.LoadFailedHandler(adError);
-			AppsFlyerMeasureAdRevenue.SendAdEvent(string.Empty, null);
+			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerBannerTracking.EventLoadFailed, null);
 		}
 	}
 }
