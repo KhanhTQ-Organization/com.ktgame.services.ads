@@ -16,6 +16,8 @@ namespace com.ktgame.ads.max_applovin
         protected AdPlacement AdPlacement { private set; get; }
         protected Vector2 AdSize { private set; get; }
         protected MRecPosition AdPosition { private set; get; }
+		public bool IsReady => _isReady;
+		private bool _isReady;
         
         public MaxApplovinMRec(string unitId, Vector2 mRectSize, MRecPosition mRecPosition)
         {

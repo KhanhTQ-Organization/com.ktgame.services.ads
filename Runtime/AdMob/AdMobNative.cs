@@ -23,7 +23,8 @@ namespace com.ktgame.ads.admob
     public class AdMobNative : INativeAdapter
     {
         protected string UnitId { private set; get; }
-        
+
+        public AdFormat AdFormat => _format;
         public event Action<AdPlacement> OnLoadSucceeded;
         public event Action<AdError> OnLoadFailed;
         public event Action<AdPlacement> OnClicked;
@@ -32,17 +33,16 @@ namespace com.ktgame.ads.admob
         public event Action OnClosed;
         public event Action<ImpressionData> OnImpressionSuccess;
         private AdPlacement AdPlacement { get; }
+        private AdFormat _format;
         private bool _isLoading = false;
+        private bool _isRegistered;
         private int _retry = 0;
         
 #if ADMOB_NATIVE
-        public List<NativeAd> NativeAdsTemp { get; }
-        public NativeAd CurrentNativeAd => _currentNativeAd;
-        public Queue<NativeAd> NativeAdsPreload { get; }
+        public NativeAd CurrentNativeAd => _nativeAd;
 
         private AdLoader _adLoader;
-        private NativeAd _currentNativeAd;
-
+        private NativeAd _nativeAd;
         public bool IsReady => _currentNativeAd != null;
 #else
 		public bool IsReady => true;
@@ -50,9 +50,10 @@ namespace com.ktgame.ads.admob
 
         private readonly int _maxPreloadCount = 2;
 
-        public AdMobNative(string unitId)
+        public AdMobNative(string unitId, AdFormat adFormat)
         {
             UnitId = unitId;
+            _format  = adFormat;
             AdPlacement = new AdPlacement("Native");
         }
 
@@ -116,9 +117,14 @@ namespace com.ktgame.ads.admob
 #if ADMOB_NATIVE
             if (_currentNativeAd != null)
             {
-                _currentNativeAd.Destroy();
-                _currentNativeAd = null;
+               _adLoader.OnNativeAdLoaded -= OnLoadSucceededHandler;
+                _adLoader.OnAdFailedToLoad -= OnLoadFailedHandler;
+                _adLoader.OnNativeAdClicked -= ClickedHandler;
+                _adLoader.OnNativeAdClosed -= ClosedHandler;
+                _adLoader = null;
             }
+            
+            DestroyNative();
 #endif
         }
 
@@ -128,6 +134,8 @@ namespace com.ktgame.ads.admob
             _isLoading = false;
             _retry = 0;
             
+            DestroyNative();
+
             UnityMainThreadDispatcher.Instance.Enqueue(() =>
             {
                 _currentNativeAd = nativeAdEventArgs.nativeAd;
@@ -139,7 +147,7 @@ namespace com.ktgame.ads.admob
         private void OnNativeAdImpression(object sender, AdValueEventArgs e)
         {
             double revenue = e.AdValue.Value / 1000000d;
-            OnPaid?.Invoke(new ImpressionData(AdPlatform.Admob, "unknow", UnitId, AdFormat.Native, "Native", "USD", revenue));
+            OnPaid?.Invoke(new ImpressionData(AdPlatform.Admob, "unknow", UnitId, AdFormat.Native, _format.ToString(), "USD", revenue));
         }
 
         private void OnLoadFailedHandler(object sender, AdFailedToLoadEventArgs adFailedEventArgs)
@@ -171,16 +179,20 @@ namespace com.ktgame.ads.admob
         private void DestroyNative()
         {
 #if ADMOB_NATIVE
-            if (_currentNativeAd != null)
+if (_nativeAd != null)
             {
+                var ad = _nativeAd;
+                _nativeAd = null;
+                _isRegistered = false;
+                
                 try
                 {
-                    _currentNativeAd.OnPaidEvent -= OnNativeAdImpression;
                     UnityMainThreadDispatcher.Instance.Enqueue(() =>
                     {
                         try
                         {
-                            _currentNativeAd.Destroy();
+                            ad.OnPaidEvent -= OnNativeAdImpression;
+                            ad.Destroy();
                         }
                         catch
                         {
@@ -192,7 +204,6 @@ namespace com.ktgame.ads.admob
                 {
                     Debug.LogWarning("[Native] DestroyNative - Exception when destroying native ad.");
                 }
-                _currentNativeAd = null;
             }
 #endif
         }

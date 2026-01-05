@@ -9,5 +9,11 @@ namespace com.ktgame.services.ads.editor
         {
             Selection.activeObject = AdServiceSettings.Instance;
         }
+        
+        [MenuItem("Ktgame/Services/Settings/Revenue")]
+        private static void SelectionSettingsTrackingFirebase()
+        {
+            Selection.activeObject = RevenueAdSetting.Instance;
+        }
     }
 }

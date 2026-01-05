@@ -61,17 +61,23 @@ namespace com.ktgame.services.ads
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobAppKey;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobAppOpenUnitId;
+		
+		[SerializeField] [TabGroup("Admob")] private string _androidAdmobAppOpenResumeUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobBannerUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeInterUnitId;
+		
+		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeCollapsibleUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobRewardedVideoUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _androidAdmobInterstitialUnitId;
 
+		[SerializeField] [TabGroup("Admob")] private string _androidAdmobInterstitialImageUnitId;
+		
 		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobAppOpenUnitId;
 
 		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobNativeUnitId;
@@ -111,12 +117,15 @@ namespace com.ktgame.services.ads
 		public MRecPosition MRecPosition => _mRecPosition;
 
 		public string AndroidAdmobAppKey => _androidAdmobAppKey;
+		public string AndroidAdmobAppOpenResumeUnitId => _androidAdmobAppOpenResumeUnitId;
 		public string AndroidAdmobAppOpenUnitId => _androidAdmobAppOpenUnitId;
 		public string AndroidAdmobBannerUnitId => _androidAdmobBannerUnitId;
 		public string AndroidAdmobNativeInterUnitId => _androidAdmobNativeInterUnitId;
 		public string AndroidAdmobNativeUnitId => _androidAdmobNativeUnitId;
 		public string AndroidAdmobRewardedVideoUnitId => _androidAdmobRewardedVideoUnitId;
 		public string AndroidAdmobInterstitialUnitId => _androidAdmobInterstitialUnitId;
+		public string AndroidAdmobInterstitialImageUnitId => _androidAdmobInterstitialImageUnitId;
+		public string AndroidAdmobNativeCollapsibleUnitId => _androidAdmobNativeCollapsibleUnitId;
 		public string IOSAdmobAppOpenUnitId => _iOSAdmobAppOpenUnitId;
 
 		public string IOSAdmobNativeUnitId => _iOSAdmobNativeUnitId;

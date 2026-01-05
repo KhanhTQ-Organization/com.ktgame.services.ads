@@ -2,37 +2,38 @@ using UnityEngine;
 using com.ktgame.ads.core;
 
 #if ADJUST_ANALYTICS
-using com.adjust.sdk;
+using AdjustSdk;
 #endif
 
 namespace com.ktgame.services.ads.adjust_ad_revenue
 {
-    internal static class AdjustMeasureAdRevenue
-    {
-        internal static void LogAdRevenueEvent(ImpressionData impressionData)
-        {
+	internal static class AdjustMeasureAdRevenue
+	{
+		internal static void LogAdRevenueEvent(ImpressionData impressionData)
+		{
 #if ADJUST_ANALYTICS
-            var adjustAdRevenue = new AdjustAdRevenue(ToAdRevenueSource(impressionData.AdPlatform));
-            adjustAdRevenue.setRevenue(impressionData.Revenue, impressionData.Currency);
-            adjustAdRevenue.setAdRevenueNetwork(impressionData.AdNetwork);
-            adjustAdRevenue.setAdRevenueUnit(impressionData.AdUnit);
-            adjustAdRevenue.setAdRevenuePlacement(impressionData.AdPlacement);
-            Adjust.trackAdRevenue(adjustAdRevenue);
+            var adRevenue = new AdjustAdRevenue(ToAdRevenueSource(impressionData.AdPlatform));
+            adRevenue.SetRevenue(impressionData.Revenue, "USD");
+            adRevenue.AdRevenueNetwork = impressionData.AdNetwork;
+            adRevenue.AdRevenueUnit = impressionData.AdUnit;
+            adRevenue.AdRevenuePlacement = impressionData.AdPlacement;
+            //Debug.Log($"[AdjustAdTrackingEvent] LogRevenueEvent : {impression.AdFlatform} | {impression.AdSource} | {impression.AdUnitId} | {impression.AdPlacement} | {impression.AdValue}");
+            Adjust.TrackAdRevenue(adRevenue);
             Debug.Log($"[AdjustMeasureAdRevenue]: {impressionData.ToString()}");
 #endif
-        }
+		}
 
 #if ADJUST_ANALYTICS
         private static string ToAdRevenueSource(AdPlatform adPlatform)
         {
             switch (adPlatform)
             {
-                case AdPlatform.Max: return AdjustConfig.AdjustAdRevenueSourceAppLovinMAX;
-                case AdPlatform.Admob: return AdjustConfig.AdjustAdRevenueSourceAdMob;
-                case AdPlatform.IronSource: return AdjustConfig.AdjustAdRevenueSourceIronSource;
-                default: return string.Empty;
+                case AdPlatform.Admob: return "admob_sdk";
+                case AdPlatform.IronSource: return "ironsource_sdk";
+                case AdPlatform.Max: return "applovin_max_sdk";
+                default: return "other";
             }
         }
 #endif
-    }
+	}
 }

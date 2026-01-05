@@ -1,11 +1,9 @@
 using com.ktgame.ads.core;
 using com.ktgame.ads.core.extensions;
-using com.ktgame.core;
 using com.ktgame.core.di;
 using com.ktgame.services.ads.adjust_ad_revenue;
 using com.ktgame.services.ads.appsflyer_ad_revenue;
 using com.ktgame.services.remote_config;
-using com.ktgame.services.scene;
 
 #if MAX_APPLOVIN
 using com.ktgame.ads.max_applovin;
@@ -29,11 +27,19 @@ using UnityEngine;
 
 namespace com.ktgame.services.ads
 {
+	using com.ktgame.core;
+
 	[Service(typeof(IAdService))]
 	public class AdService : MonoBehaviour, IAdService
 	{
 		[Inject] private IRemoteConfigService _remoteConfigService;
-
+		
+#if COLLAPSIBLE
+		[Inject] private IGmaNativeInterstitial _gmaNativePopup;
+		[Inject] private IGmaNativeCollapsible _gmaNativeCollapsible;
+		[Inject] private IMRecCollapsibleAds  _mRecCollapsibleAds;
+#endif
+		
 		public int Priority => 2;
 		public bool Initialized { get; set; }
 		public IAdAdapter Ad { private set; get; }
@@ -50,8 +56,10 @@ namespace com.ktgame.services.ads
 		private IInterstitialAdapter _interstitialImageBackFillAdapter;
 		private IRewardVideoAdapter _rewardVideoBackFillAdapter;
 		private IAppOpenAdapter _appOpenBackFillAdapter;
+		private IAppOpenAdapter _appOpenResumeBackFillAdapter;
 		private INativeAdapter _nativeAdapterBackFill;
 		private INativeAdapter _nativeInterAdapterBackFill;
+		private INativeAdapter _nativeCollapsibleAdapterBackFill;
 
 		private AdServiceSettings _settings;
 #if ADMOB
@@ -60,6 +68,15 @@ namespace com.ktgame.services.ads
 		public async UniTask OnInitialize(IArchitecture architecture)
 		{
 			_settings = AdServiceSettings.Instance;
+#if PRODUCTION
+			_remoteConfigService ??= Game.Instance.GetService<IRemoteConfigService>();
+#if COLLAPSIBLE
+			_gmaNativePopup ??= Game.Instance.GetService<IGmaNativeInterstitial>();
+			_gmaNativeCollapsible  ??= Game.Instance.GetService<IGmaNativeCollapsible>();
+			_mRecCollapsibleAds  ??= Game.Instance.GetService<IMRecCollapsibleAds>();
+#endif
+#endif
+
 #if ADMOB
 			ConsentRequestParameters request = new ConsentRequestParameters
 			{
@@ -82,8 +99,7 @@ namespace com.ktgame.services.ads
 
 			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinBannerUnitId))
 			{
-				_bannerAdapter = new MaxApplovinBanner(_settings.AndroidMaxApplovinBannerUnitId, _settings.BannerSize,
-					_settings.BannerPosition);
+				_bannerAdapter = new MaxApplovinBanner(_settings.AndroidMaxApplovinBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
 			}
 
 			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinInterstitialUnitId))
@@ -98,8 +114,8 @@ namespace com.ktgame.services.ads
 
 			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinMRecUnitId))
 			{
-				_mRecAdapter = new MaxApplovinMRec(_settings.AndroidMaxApplovinMRecUnitId, _settings.MRecDp,
-					_settings.MRecPosition);
+				_mRecAdapter = new MaxApplovinMRec(_settings.AndroidMaxApplovinMRecUnitId, _settings.MRecDp, _settings.MRecPosition);
+				_mRecCollapsibleAds.Initialize();
 			}
 
 			_appOpenAdapter = NullAppOpenAdapter.Instance;
@@ -129,8 +145,7 @@ namespace com.ktgame.services.ads
 
 			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinMRecUnitId))
 			{
-				_mRecAdapter =
- new MaxApplovinMRec(_settings.IOSMaxApplovinMRecUnitId,_settings.MRecDp,_settings.MRecPosition);
+				_mRecAdapter = new MaxApplovinMRec(_settings.IOSMaxApplovinMRecUnitId,_settings.MRecDp,_settings.MRecPosition);
 			}
 #else
 			Ad = new NullAdAdapter();
@@ -226,6 +241,11 @@ namespace com.ktgame.services.ads
 			{
 				_rewardVideoAdapter = new AppsFlyerAdRevenueRewardsVideo(_rewardVideoAdapter);
 			}
+
+			if (_mRecAdapter != null)
+			{
+				_mRecAdapter = new AppsFlyerAdRevenueMRec(_mRecAdapter);
+			}
 #endif
 
 			if (_bannerAdapter != null)
@@ -274,16 +294,21 @@ namespace com.ktgame.services.ads
 			{
 				_bannerAdBackFillAdapter = new AdMobCollapsibleBanner(_settings.AndroidAdmobBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
 			}
-			
+
+			if (!string.IsNullOrEmpty(_settings.AndroidAdmobRewardedVideoUnitId))
+			{
+				_rewardVideoBackFillAdapter = new AdmobRewardVideo(_settings.AndroidAdmobRewardedVideoUnitId);
+			}
+
 			if (!string.IsNullOrEmpty(_settings.AndroidAdmobInterstitialUnitId))
 			{
 				_interstitialBackFillAdapter = new AdMobInterstitial(_settings.AndroidAdmobInterstitialUnitId);
 			}
-			
-			//var idImage = _remoteConfigService.GetValue(RemoteConfigKey.intertitial_image_ad_id).String;
-			if (!string.IsNullOrEmpty(_settings.AndroidAdmobInterstitialUnitId))
+
+			var idImage = _remoteConfigService.GetValue(RemoteConfigKey.inter_image_ad_id).String ?? _settings.AndroidAdmobInterstitialImageUnitId;
+			if (!string.IsNullOrEmpty(idImage))
 			{
-				_interstitialImageBackFillAdapter = new AdMobInterstitial(_settings.AndroidAdmobInterstitialUnitId);
+				_interstitialImageBackFillAdapter = new AdMobInterstitial(idImage);
 			}
 
 			var idAOA = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_id).String ?? _settings.AndroidAdmobAppOpenUnitId;
@@ -295,29 +320,45 @@ namespace com.ktgame.services.ads
 			{
 				_appOpenBackFillAdapter = new AdMobAppOpen(_settings.AndroidAdmobAppOpenUnitId);
 			}
+			
+			var aoaResume = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_resume_id).String ?? _settings.AndroidAdmobAppOpenResumeUnitId;
+			if (!string.IsNullOrEmpty(aoaResume))
+			{
+				_appOpenResumeBackFillAdapter = new AdMobAppOpen(aoaResume);
+			}
+
 #if ADMOB_NATIVE
-	var idNative = _remoteConfigService.GetValue(RemoteConfigKey.native_ad_id).String;
-			Debug.Log(idNative);
+
+			var idNative = _remoteConfigService.GetValue(RemoteConfigKey.native_ad_id).String;
+
 			if (!string.IsNullOrEmpty(idNative))
 			{
-				_nativeAdapterBackFill = new AdMobNative(idNative);
+				_nativeAdapterBackFill = new AdMobNative(idNative, AdFormat.Native);
 			}
 			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobNativeUnitId))
 			{
-				_nativeAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeUnitId);
+				_nativeAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeUnitId, AdFormat.NativeInter);
 			}
-			
-			var idNativeInter = _remoteConfigService.GetValue(RemoteConfigKey.native_inter_ad_id).String;
+
+			var idNativeInter = _remoteConfigService.GetValue(RemoteConfigKey.native_interstitial_ad_id).String;
 			if (!string.IsNullOrEmpty(idNativeInter))
 			{
-				_nativeInterAdapterBackFill = new AdMobNative(idNativeInter);
+				// _nativeInterAdapterBackFill = new AdMobNative(idNativeInter);
+				_gmaNativePopup.Initialize(idNativeInter);
 			}
 			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobNativeInterUnitId))
 			{
-				_nativeInterAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeInterUnitId);
-			}		
-#endif
+				_nativeInterAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeInterUnitId, AdFormat.NativeCollapsile);
+			}
 			
+			var nativeCollap = _remoteConfigService?.GetValue(RemoteConfigKey.native_collap_ad_id).String ?? _settings.AndroidAdmobNativeCollapsibleUnitId;
+			if (!string.IsNullOrEmpty(nativeCollap))
+			{
+				Debug.Log("Collap");
+				_gmaNativeCollapsible.Initialize(nativeCollap);
+			}
+#endif
+
 #elif UNITY_IOS && ADMOB
 			AdBackFill = new AdMobAdapter(_settings.IOSAdmobAppOpenUnitId);
 
@@ -365,8 +406,7 @@ namespace com.ktgame.services.ads
 
 			if (_interstitialBackFillAdapter != null)
 			{
-				_interstitialBackFillAdapter =
-					new AutoRequestInterstitial(requestStrategy, _interstitialBackFillAdapter);
+				_interstitialBackFillAdapter = new AutoRequestInterstitial(requestStrategy, _interstitialBackFillAdapter);
 			}
 
 			if (_interstitialImageBackFillAdapter != null)
@@ -384,6 +424,11 @@ namespace com.ktgame.services.ads
 			{
 				_appOpenBackFillAdapter = new AutoRequestAppOpen(requestStrategy, _appOpenBackFillAdapter);
 			}
+			
+			if (_appOpenResumeBackFillAdapter != null)
+			{
+				_appOpenResumeBackFillAdapter = new AutoRequestAppOpen(requestStrategy, _appOpenResumeBackFillAdapter);
+			}
 
 			if (_nativeAdapterBackFill != null)
 			{
@@ -396,9 +441,20 @@ namespace com.ktgame.services.ads
 			}
 
 #if FIREBASE_ANALYTICS
+			
+			if (_appOpenBackFillAdapter != null)
+			{
+				_appOpenBackFillAdapter = new FirebaseAdRevenueAppOpen(_appOpenBackFillAdapter);
+			}
+			
+			if (_appOpenResumeBackFillAdapter != null)
+			{
+				_appOpenResumeBackFillAdapter = new FirebaseAdRevenueAppOpen(_appOpenResumeBackFillAdapter);
+			}
+			
 			if (_bannerAdBackFillAdapter != null)
 			{
-				_bannerAdBackFillAdapter = new FirebaseAdRevenueBanner(_bannerAdapter);
+				_bannerAdBackFillAdapter = new FirebaseAdRevenueBanner(_bannerAdBackFillAdapter);
 			}
 
 			if (_interstitialBackFillAdapter != null)
@@ -408,8 +464,7 @@ namespace com.ktgame.services.ads
 
 			if (_interstitialImageBackFillAdapter != null)
 			{
-				_interstitialImageBackFillAdapter =
-					new FirebaseAdRevenueInterstitial(_interstitialImageBackFillAdapter);
+				_interstitialImageBackFillAdapter = new FirebaseAdRevenueInterstitial(_interstitialImageBackFillAdapter);
 			}
 
 			if (_rewardVideoBackFillAdapter != null)
@@ -426,18 +481,96 @@ namespace com.ktgame.services.ads
 			{
 				_nativeInterAdapterBackFill = new FirebaseAdRevenueNative(_nativeInterAdapterBackFill);
 			}
+
+			if (_nativeCollapsibleAdapterBackFill != null)
+			{
+				_nativeCollapsibleAdapterBackFill = new FirebaseAdRevenueNative(_nativeCollapsibleAdapterBackFill);
+			}
 #endif
 
-#if APPSFLYER_ANALYTICS
+#if ADJUST_ANALYTICS
+			
 			if (_interstitialImageBackFillAdapter != null)
 			{
-				_interstitialImageBackFillAdapter =
-					new AppsFlyerAdRevenueInterstitial(_interstitialImageBackFillAdapter);
+				_interstitialImageBackFillAdapter = new AdjustAdRevenueInterstitial(_interstitialImageBackFillAdapter);
+			}
+
+			if (_interstitialBackFillAdapter != null)
+			{
+				_interstitialBackFillAdapter = new AdjustAdRevenueInterstitial(_interstitialBackFillAdapter);
+			}
+
+			if (_rewardVideoBackFillAdapter != null)
+			{
+				_rewardVideoBackFillAdapter = new AdjustAdRevenueRewardVideo(_rewardVideoBackFillAdapter);
+			}
+			
+			if (_appOpenBackFillAdapter != null)
+			{
+				_appOpenBackFillAdapter = new AdjustAdRevenueAppOpen(_appOpenBackFillAdapter);
+			}
+			
+			if (_appOpenResumeBackFillAdapter != null)
+			{
+				_appOpenResumeBackFillAdapter = new AdjustAdRevenueAppOpen(_appOpenResumeBackFillAdapter);
+			}
+
+			if (_nativeAdapterBackFill != null)
+			{
+				_nativeAdapterBackFill = new AdjustAdRevenueNative(_nativeAdapterBackFill);
+			}
+			
+			if (_nativeInterAdapterBackFill != null)
+			{
+				_nativeInterAdapterBackFill = new AdjustAdRevenueNative(_nativeInterAdapterBackFill);
+			}
+			
+			if (_nativeCollapsibleAdapterBackFill != null)
+			{
+				_nativeCollapsibleAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeCollapsibleAdapterBackFill);
+			}
+#endif
+			
+#if APPSFLYER_ANALYTICS
+			
+			if (_interstitialImageBackFillAdapter != null)
+			{
+				_interstitialImageBackFillAdapter = new AppsFlyerAdRevenueInterstitial(_interstitialImageBackFillAdapter);
+			}
+
+			if (_interstitialBackFillAdapter != null)
+			{
+				_interstitialBackFillAdapter = new AppsFlyerAdRevenueInterstitial(_interstitialBackFillAdapter);
 			}
 
 			if (_rewardVideoBackFillAdapter != null)
 			{
 				_rewardVideoBackFillAdapter = new AppsFlyerAdRevenueRewardsVideo(_rewardVideoBackFillAdapter);
+			}
+			
+			if (_appOpenBackFillAdapter != null)
+			{
+				_appOpenBackFillAdapter = new AppsFlyerAdRevenueAppOpen(_appOpenBackFillAdapter);
+			}
+			
+			if (_appOpenResumeBackFillAdapter != null)
+			{
+				_appOpenResumeBackFillAdapter = new AppsFlyerAdRevenueAppOpen(_appOpenResumeBackFillAdapter);
+			}
+
+			if (_nativeAdapterBackFill != null)
+			{
+				_nativeAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeAdapterBackFill);
+			}
+			
+			if (_nativeInterAdapterBackFill != null)
+			{
+				_nativeInterAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeInterAdapterBackFill);
+			}
+			
+			if (_nativeCollapsibleAdapterBackFill != null)
+			{
+				_nativeCollapsibleAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeCollapsibleAdapterBackFill);
 			}
 #endif
 
@@ -465,6 +598,11 @@ namespace com.ktgame.services.ads
 			{
 				AdBackFill.SetAppOpen(_appOpenBackFillAdapter);
 			}
+			
+			if (_appOpenResumeBackFillAdapter != null)
+			{
+				AdBackFill.SetAppOpenResume(_appOpenResumeBackFillAdapter);
+			}
 
 			if (_nativeAdapterBackFill != null)
 			{
@@ -474,6 +612,11 @@ namespace com.ktgame.services.ads
 			if (_nativeInterAdapterBackFill != null)
 			{
 				AdBackFill.SetNativeInter(_nativeInterAdapterBackFill);
+			}
+
+			if (_nativeCollapsibleAdapterBackFill != null)
+			{
+				AdBackFill.SetNativeCollapsible(_nativeCollapsibleAdapterBackFill);
 			}
 
 #if ADMOB
