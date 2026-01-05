@@ -1,3 +1,10 @@
+## [1.0.14](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.13...v1.0.14) (2026-01-05)
+
+
+### Bug Fixes
+
+* update rev, adjust, collapsible ([a2d66db](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/a2d66db8d0948862870bc0dd6f8e487c0be339a8))
+
 ## [1.0.13](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.12...v1.0.13) (2025-12-15)
 
 
