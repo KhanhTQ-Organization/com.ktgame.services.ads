@@ -11,9 +11,9 @@ namespace com.ktgame.services.ads.appsflyer_ad_revenue
 			_settings = RevenueAdSetting.Instance;
 		}
         
-		protected override void PaidHandler(ImpressionData impressionData)
+		protected override void ImpressionSuccessHandler(ImpressionData impressionData)
 		{
-			base.PaidHandler(impressionData);
+			base.ImpressionSuccessHandler(impressionData);
 			AppsFlyerMeasureAdRevenue.LogAdRevenueEvent(impressionData);
 		}
 		
