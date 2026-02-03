@@ -1,69 +1,91 @@
 using System.Collections.Generic;
 using com.ktgame.ads.core;
+using com.ktgame.core;
 
 namespace com.ktgame.services.ads.firebase_ad_revenue
 {
 	public class FirebaseAdRevenueRewardVideo : RewardVideoDecorator
 	{
-		private RevenueAdSetting _settings;
+		private readonly RevenueRewardVideoData? _rewardVideoConfig;
 
 		public FirebaseAdRevenueRewardVideo(IRewardVideoAdapter adapter) : base(adapter)
 		{
-			_settings = RevenueAdSetting.Instance;
+			_rewardVideoConfig = RevenueAdSetting.Instance.GetRewardVideo(AnalyticsProvider.Firebase);
 		}
 
 		protected override void ImpressionSuccessHandler(ImpressionData impressionData)
 		{
 			base.ImpressionSuccessHandler(impressionData);
-			FirebaseMeasureAdRevenue.LogAdRevenueEvent(impressionData);
+			if (_rewardVideoConfig != null)
+			{
+				FirebaseMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventLoadSucceeded, null);
+			}
 		}
 
 		protected override void LoadSucceededHandler()
 		{
 			base.LoadSucceededHandler();
-			FirebaseMeasureAdRevenue.SendAdEvent(_settings.FirebaseRewardVideoTracking.EventLoadSucceeded, null);
+			if (_rewardVideoConfig != null)
+			{
+				FirebaseMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventLoadSucceeded, null);
+			}
 		}
 
 		protected override void LoadFailedHandler(AdError adError)
 		{
 			base.LoadFailedHandler(adError);
-			FirebaseMeasureAdRevenue.SendAdEvent(_settings.FirebaseRewardVideoTracking.EventLoadFailed,
-				new Dictionary<string, string>
-				{
-					{ "errormsg", adError.Message }
-				});
+			if (_rewardVideoConfig != null)
+			{
+				FirebaseMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventLoadFailed,
+					new Dictionary<string, string>
+					{
+						{ "errormsg", adError.Message }
+					});
+			}
 		}
 
 		protected override void RewardHandler(AdPlacement rewardData)
 		{
 			base.RewardHandler(rewardData);
-			FirebaseMeasureAdRevenue.SendAdEvent(_settings.FirebaseRewardVideoTracking.EventRewarded,
-				new Dictionary<string, string>
-				{
-					{ "placement", rewardData.Location }
-				});
+			if (_rewardVideoConfig != null)
+			{
+				FirebaseMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventRewarded,
+					new Dictionary<string, string>
+					{
+						{ "placement", rewardData.Location }
+					});
+			}
 		}
 
 		protected override void VideoClosedHandler()
 		{
 			base.VideoClosedHandler();
-			FirebaseMeasureAdRevenue.SendAdEvent(_settings.FirebaseRewardVideoTracking.EventClosed, null);
+			if (_rewardVideoConfig != null)
+			{
+				FirebaseMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventClosed, null);
+			}
 		}
 
 		protected override void VideoOpenedHandler()
 		{
 			base.VideoOpenedHandler();
-			FirebaseMeasureAdRevenue.SendAdEvent(_settings.FirebaseRewardVideoTracking.EventVideoOpened, null);
+			if (_rewardVideoConfig != null)
+			{
+				FirebaseMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventVideoOpened, null);
+			}
 		}
 
 		protected override void ShowFailedHandler(AdError error)
 		{
 			base.ShowFailedHandler(error);
-			FirebaseMeasureAdRevenue.SendAdEvent(_settings.FirebaseRewardVideoTracking.EventShowFailed,
-				new Dictionary<string, string>
-				{
-					{ "errormsg", error.Message }
-				});
+			if (_rewardVideoConfig != null)
+			{
+				FirebaseMeasureAdRevenue.SendAdEvent(
+					_rewardVideoConfig?.EventShowFailed, new Dictionary<string, string>
+					{
+						{ "errormsg", error.Message }
+					});
+			}
 		}
 	}
 }

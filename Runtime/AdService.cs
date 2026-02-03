@@ -62,12 +62,14 @@ namespace com.ktgame.services.ads
 		private INativeAdapter _nativeCollapsibleAdapterBackFill;
 
 		private AdServiceSettings _settings;
+		private IAASettingSO _iaaSettingSo;
 #if ADMOB
 		private ConsentForm _consentForm;
 #endif
 		public async UniTask OnInitialize(IArchitecture architecture)
 		{
 			_settings = AdServiceSettings.Instance;
+			_iaaSettingSo = IAASettingSO.Instance;
 #if PRODUCTION
 			_remoteConfigService ??= Game.Instance.GetService<IRemoteConfigService>();
 #if COLLAPSIBLE

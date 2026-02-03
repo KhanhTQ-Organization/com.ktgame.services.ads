@@ -1,56 +1,100 @@
+using System.Collections.Generic;
 using com.ktgame.ads.core;
+using com.ktgame.core;
 
 namespace com.ktgame.services.ads.appsflyer_ad_revenue
 {
 	public class AppsFlyerAdRevenueRewardsVideo : RewardVideoDecorator
 	{
-		private RevenueAdSetting _settings;
+		private readonly RevenueRewardVideoData? _rewardVideoConfig;
 
 		public AppsFlyerAdRevenueRewardsVideo(IRewardVideoAdapter adapter) : base(adapter)
 		{
-			_settings = RevenueAdSetting.Instance;
+			_rewardVideoConfig = RevenueAdSetting.Instance.GetRewardVideo(AnalyticsProvider.AppsFlyer);
 		}
-		
-		protected override void PainHandler(ImpressionData impressionData)
+
+		protected override void ImpressionSuccessHandler(ImpressionData impressionData)
 		{
-			base.PainHandler(impressionData);
+			base.ImpressionSuccessHandler(impressionData);
+
+			if (_rewardVideoConfig == null)
+			{
+				return;
+			}
+
 			AppsFlyerMeasureAdRevenue.LogAdRevenueEvent(impressionData);
 		}
 
 		protected override void LoadSucceededHandler()
 		{
 			base.LoadSucceededHandler();
-			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerRewardVideoTracking.EventLoadSucceeded, null);
+
+			if (_rewardVideoConfig != null)
+			{
+				AppsFlyerMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventLoadSucceeded, null);
+			}
 		}
 
 		protected override void LoadFailedHandler(AdError adError)
 		{
 			base.LoadFailedHandler(adError);
-			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerRewardVideoTracking.EventLoadFailed, null);
+
+			if (_rewardVideoConfig != null)
+			{
+				AppsFlyerMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventLoadFailed,
+					new Dictionary<string, string>
+					{
+						{ "errormsg", adError.Message }
+					});
+			}
 		}
-		
+
 		protected override void RewardHandler(AdPlacement rewardData)
 		{
 			base.RewardHandler(rewardData);
-			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerRewardVideoTracking.EventRewarded, null);
+
+			if (_rewardVideoConfig != null)
+			{
+				AppsFlyerMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventRewarded,
+					new Dictionary<string, string>
+					{
+						{ "placement", rewardData.Location }
+					});
+			}
 		}
 
 		protected override void VideoClosedHandler()
 		{
 			base.VideoClosedHandler();
-			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerRewardVideoTracking.EventClosed, null);
+
+			if (_rewardVideoConfig != null)
+			{
+				AppsFlyerMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventClosed, null);
+			}
 		}
 
 		protected override void VideoOpenedHandler()
 		{
 			base.VideoOpenedHandler();
-			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerRewardVideoTracking.EventVideoOpened, null);
+
+			if (_rewardVideoConfig != null)
+			{
+				AppsFlyerMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventVideoOpened, null);
+			}
 		}
 
 		protected override void ShowFailedHandler(AdError error)
 		{
 			base.ShowFailedHandler(error);
-			AppsFlyerMeasureAdRevenue.SendAdEvent(_settings.AppsFlyerRewardVideoTracking.EventShowFailed, null);
+
+			if (_rewardVideoConfig != null)
+			{
+				AppsFlyerMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventShowFailed,
+					new Dictionary<string, string>
+					{
+						{ "errormsg", error.Message }
+					});
+			}
 		}
 	}
 }
