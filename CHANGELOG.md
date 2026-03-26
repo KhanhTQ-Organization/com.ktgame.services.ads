@@ -1,3 +1,10 @@
+## [1.0.18](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.17...v1.0.18) (2026-03-26)
+
+
+### Bug Fixes
+
+* update appopen ([9449ade](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/9449ade441468e5c5b12d7a89d0170ab1c434842))
+
 ## [1.0.17](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.16...v1.0.17) (2026-03-04)
 
 
