@@ -71,7 +71,7 @@ namespace com.ktgame.services.ads
 			_settings = AdServiceSettings.Instance;
 			_iaaSettingSo = IAASettingSO.Instance;
 #if PRODUCTION
-			_remoteConfigService ??= Game.Instance.GetService<IRemoteConfigService>();
+			//_remoteConfigService ??= Game.Instance.GetService<IRemoteConfigService>();
 #if COLLAPSIBLE
 			_gmaNativePopup ??= Game.Instance.GetService<IGmaNativeInterstitial>();
 			_gmaNativeCollapsible  ??= Game.Instance.GetService<IGmaNativeCollapsible>();
@@ -117,7 +117,9 @@ namespace com.ktgame.services.ads
 			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinMRecUnitId))
 			{
 				_mRecAdapter = new MaxApplovinMRec(_settings.AndroidMaxApplovinMRecUnitId, _settings.MRecDp, _settings.MRecPosition);
+#if COLLAPSIBLE
 				_mRecCollapsibleAds.Initialize();
+#endif
 			}
 
 			_appOpenAdapter = NullAppOpenAdapter.Instance;
