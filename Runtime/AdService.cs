@@ -1,5 +1,6 @@
 using com.ktgame.ads.core;
 using com.ktgame.ads.core.extensions;
+using com.ktgame.ads.max_applovin;
 using com.ktgame.core.di;
 using com.ktgame.services.ads.adjust_ad_revenue;
 using com.ktgame.services.ads.appsflyer_ad_revenue;
@@ -99,6 +100,11 @@ namespace com.ktgame.services.ads
 #if UNITY_ANDROID && MAX_APPLOVIN
 			Ad = new MaxApplovinAdapter(_settings.AndroidMaxApplovinAppKey);
 
+			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinAppOpenUnitId))
+			{
+				_appOpenAdapter = new MaxApplovinAppOpen(_settings.AndroidMaxApplovinAppOpenUnitId);
+			}
+
 			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinBannerUnitId))
 			{
 				_bannerAdapter = new MaxApplovinBanner(_settings.AndroidMaxApplovinBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
@@ -121,11 +127,17 @@ namespace com.ktgame.services.ads
 				_mRecCollapsibleAds.Initialize();
 #endif
 			}
-
-			_appOpenAdapter = NullAppOpenAdapter.Instance;
+			
 #elif UNITY_IOS && MAX_APPLOVIN
 			Ad = new MaxApplovinAdapter(_settings.IOSMaxApplovinAppKey);
 
+			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinBannerUnitId))
+			{
+				_bannerAdapter = new MaxApplovinBanner(_settings.IOSMaxApplovinBannerUnitId, _settings.BannerSize,
+					_settings.BannerPosition);
+			}
+
+			
 			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinBannerUnitId))
 			{
 				_bannerAdapter = new MaxApplovinBanner(_settings.IOSMaxApplovinBannerUnitId, _settings.BannerSize,
@@ -187,6 +199,12 @@ namespace com.ktgame.services.ads
 			}
 
 #if FIREBASE_ANALYTICS
+
+			if (_appOpenAdapter != null)
+			{
+				_appOpenAdapter = new FirebaseAdRevenueAppOpen(_appOpenAdapter);
+			}
+
 			if (_bannerAdapter != null)
 			{
 				_bannerAdapter = new FirebaseAdRevenueBanner(_bannerAdapter);
@@ -209,6 +227,12 @@ namespace com.ktgame.services.ads
 #endif
 
 #if ADJUST_ANALYTICS
+			
+			if (_appOpenAdapter != null)
+			{
+				_appOpenAdapter = new AdjustAdRevenueAppOpen(_appOpenAdapter);    
+			}
+			
             if (_bannerAdapter != null)
             {
                 _bannerAdapter = new AdjustAdRevenueBanner(_bannerAdapter);    
@@ -231,6 +255,11 @@ namespace com.ktgame.services.ads
 #endif
 
 #if APPSFLYER_ANALYTICS
+			if (_appOpenAdapter != null)
+			{
+				_appOpenAdapter = new AdjustAdRevenueAppOpen(_appOpenAdapter);
+			}
+
 			if (_bannerAdapter != null)
 			{
 				_bannerAdapter = new AppsFlyerAdRevenueBanner(_bannerAdapter);

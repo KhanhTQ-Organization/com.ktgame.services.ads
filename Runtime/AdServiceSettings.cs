@@ -19,6 +19,8 @@ namespace com.ktgame.services.ads
 		[SerializeField] [TabGroup("IronSource")] private string _androidIronSourceAppId;
 
 		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinAppKey;
+		
+		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinAppOpenUnitId;
 
 		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinBannerUnitId;
 
@@ -105,6 +107,7 @@ namespace com.ktgame.services.ads
 		public string AndroidIronSourceAppId => _androidIronSourceAppId;
 
 		public string AndroidMaxApplovinAppKey => _androidMaxApplovinAppKey;
+		public string AndroidMaxApplovinAppOpenUnitId => _androidMaxApplovinAppOpenUnitId;
 
 		public string AndroidMaxApplovinBannerUnitId => _androidMaxApplovinBannerUnitId;
 
