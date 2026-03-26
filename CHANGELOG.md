@@ -1,3 +1,10 @@
+## [1.0.19](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.18...v1.0.19) (2026-03-26)
+
+
+### Bug Fixes
+
+* update appflyer ([54e232b](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/54e232b16ba8cd86fb989de450d32c59ddd49619))
+
 ## [1.0.18](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.17...v1.0.18) (2026-03-26)
 
 
