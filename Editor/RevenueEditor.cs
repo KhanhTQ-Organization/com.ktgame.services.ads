@@ -43,34 +43,10 @@ namespace com.ktgame.services.ads.editor
         [ShowIf("@(AnalyticsSDKProvider.HasFlag(AnalyticsProvider.Firebase))"),
          TabGroup("Platform", "Android", SdfIconType.Robot),
          ShowInInspector, HideReferenceObjectPicker,
-         BoxGroup("Platform/Android/Firebase Revenue"),
+         BoxGroup("Platform/Android/Revenue Config"),
          InlineEditor(Expanded = true),
          HideLabel, Indent(1)]
         public RevenueAdSetting FirebaseAndroid
-        {
-            get => _revenueSetting;
-            set => _revenueSetting = value;
-        }
-        
-        [ShowIf("@(AnalyticsSDKProvider.HasFlag(AnalyticsProvider.Adjust))"),
-         TabGroup("Platform", "Android", SdfIconType.Robot),
-         ShowInInspector, HideReferenceObjectPicker,
-         BoxGroup("Platform/Android/Adjust Revenue"),
-         InlineEditor(Expanded = true),
-         HideLabel, Indent(1)]
-        public RevenueAdSetting AdjustAndroid
-        {
-            get => _revenueSetting;
-            set => _revenueSetting = value;
-        }
-        
-        [ShowIf("@(AnalyticsSDKProvider.HasFlag(AnalyticsProvider.AppsFlyer))"),
-         TabGroup("Platform", "Android", SdfIconType.Robot),
-         ShowInInspector, HideReferenceObjectPicker,
-         BoxGroup("Platform/Android/AppsFlyer Revenue"),
-         InlineEditor(Expanded = true),
-         HideLabel, Indent(1)]
-        public RevenueAdSetting AppsFlyerAndroid
         {
             get => _revenueSetting;
             set => _revenueSetting = value;

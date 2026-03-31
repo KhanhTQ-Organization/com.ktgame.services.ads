@@ -7,6 +7,8 @@ namespace com.ktgame.services.ads
 	[Serializable]
 	public class AdRevenueProviderSetting
 	{
+		[BoxGroup("Provider", ShowLabel = false)]
+		[GUIColor(0.6f, 0.9f, 1f)]
 		[EnumPaging] public AnalyticsProvider Provider;
 
 		[EnumPaging] public IAAFormatType Formats;
