@@ -29,12 +29,12 @@ namespace com.ktgame.ads.admob
 #else       
 		public bool IsReady => true;
 #endif
-
 		protected string UnitId { private set; get; }
 		protected AdPlacement AdPlacement { private set; get; }
 #if ADMOB
 		protected InterstitialAd InterstitialAd { private set; get; }
 #endif
+		private bool _isLoading = false;
 		
 		public AdMobInterstitial(string unitId)
 		{
@@ -44,10 +44,24 @@ namespace com.ktgame.ads.admob
 		
 		public void Load()
 		{
+			
+			if (IsReady)
+			{
+				return;
+			}
+			
 #if ADMOB
+			if (_isLoading)
+			{
+				return;
+			}
+
+			_isLoading = true;
+
 			AdRequest request = new AdRequest();
 			InterstitialAd.Load(UnitId, request, (ad, error) =>
 			{
+				_isLoading = false;
 				if (error != null)
 				{
 					var adError = AdMobExtensions.ToAdError(error, AdPlacement);

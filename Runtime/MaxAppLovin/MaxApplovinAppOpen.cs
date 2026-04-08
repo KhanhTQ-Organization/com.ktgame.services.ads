@@ -3,30 +3,30 @@ using com.ktgame.ads.core;
 
 namespace com.ktgame.ads.max_applovin
 {
-    public class MaxApplovinAppOpen : IAppOpenAdapter
-    {
-        protected string UnitId { private set; get; }
-        public event Action<AdError> OnLoadFailed;
-        public event Action OnLoadSucceeded;
-        public event Action<AdError> OnShowFailed;
-        public event Action<AdPlacement> OnShowSucceeded;
-        public event Action<AdPlacement> OnClicked;
-        public event Action OnClosed;
-        public event Action<ImpressionData> OnImpressionSuccess;
-        public event Action<AppState> OnAppStateChanged;
-        
+	public class MaxApplovinAppOpen : IAppOpenAdapter
+	{
+		protected string UnitId { private set; get; }
+		public event Action<AdError> OnLoadFailed;
+		public event Action OnLoadSucceeded;
+		public event Action<AdError> OnShowFailed;
+		public event Action<AdPlacement> OnShowSucceeded;
+		public event Action<AdPlacement> OnClicked;
+		public event Action OnClosed;
+		public event Action<ImpressionData> OnImpressionSuccess;
+		public event Action<AppState> OnAppStateChanged;
+
 #if MAX_APPLOVIN
         public bool IsReady => MaxSdk.IsAppOpenAdReady(UnitId);
 #else
-        public bool IsReady => true;
+		public bool IsReady => true;
 #endif
 
-        private AdPlacement AdPlacement { get; }
+		private AdPlacement AdPlacement { get; }
 
-        public MaxApplovinAppOpen(string unitId)
-        {
-            UnitId = unitId;
-            AdPlacement = new AdPlacement("AppOpen");
+		public MaxApplovinAppOpen(string unitId)
+		{
+			UnitId = unitId;
+			AdPlacement = new AdPlacement("AppOpen");
 #if MAX_APPLOVIN
             MaxSdkCallbacks.AppOpen.OnAdLoadedEvent += LoadSucceededHandler;
             MaxSdkCallbacks.AppOpen.OnAdLoadFailedEvent += LoadFailedHandler;
@@ -36,22 +36,28 @@ namespace com.ktgame.ads.max_applovin
             MaxSdkCallbacks.AppOpen.OnAdRevenuePaidEvent += AdRevenuePaidHandler;
             MaxSdkCallbacks.AppOpen.OnAdHiddenEvent += ClosedHandler;
 #endif
-        }
+		}
 
-        public void Load()
-        {
+		public void Load()
+		{
 #if MAX_APPLOVIN
-            MaxSdk.LoadAppOpenAd(UnitId);
+			if (MaxSdk.IsInitialized())
+			{
+				if (!IsReady)
+				{
+					MaxSdk.LoadAppOpenAd(UnitId);
+				}
+			}
 #endif
-        }
+		}
 
-        public void Show()
-        {
+		public void Show()
+		{
 #if MAX_APPLOVIN
             MaxSdk.ShowAppOpenAd(UnitId);
 #endif
-        }
-        
+		}
+
 #if MAX_APPLOVIN
         private void LoadSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
@@ -91,5 +97,5 @@ namespace com.ktgame.ads.max_applovin
             OnImpressionSuccess?.Invoke(impressionData);
         }
 #endif
-    }
+	}
 }

@@ -48,7 +48,13 @@ namespace com.ktgame.ads.max_applovin
         public void Load()
         {
 #if MAX_APPLOVIN
-            MaxSdk.LoadRewardedAd(UnitId);
+			if (MaxSdk.IsInitialized())
+			{
+				if (!IsReady)
+				{
+					 MaxSdk.LoadRewardedAd(UnitId);
+				}
+			}
 #endif
         }
 

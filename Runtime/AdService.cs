@@ -387,7 +387,6 @@ namespace com.ktgame.services.ads
 			var nativeCollap = _remoteConfigService?.GetValue(RemoteConfigKey.native_collap_ad_id).String ?? _settings.AndroidAdmobNativeCollapsibleUnitId;
 			if (!string.IsNullOrEmpty(nativeCollap))
 			{
-				Debug.Log("Collap");
 				_gmaNativeCollapsible.Initialize(nativeCollap);
 			}
 #endif
@@ -397,8 +396,7 @@ namespace com.ktgame.services.ads
 
 			if (!string.IsNullOrEmpty(_settings.IOSAdmobBannerUnitId))
 			{
-				_bannerAdBackFillAdapter =
- new AdMobCollapsibleBanner(_settings.IOSAdmobBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
+				_bannerAdBackFillAdapter = new AdMobCollapsibleBanner(_settings.IOSAdmobBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
 			}
 
 			if (!string.IsNullOrEmpty(_settings.IOSAdmobInterstitialUnitId))
@@ -444,8 +442,7 @@ namespace com.ktgame.services.ads
 
 			if (_interstitialImageBackFillAdapter != null)
 			{
-				_interstitialImageBackFillAdapter =
-					new AutoRequestInterstitial(requestStrategy, _interstitialImageBackFillAdapter);
+				_interstitialImageBackFillAdapter = new AutoRequestInterstitial(requestStrategy, _interstitialImageBackFillAdapter);
 			}
 
 			if (_rewardVideoBackFillAdapter != null)
@@ -560,7 +557,7 @@ namespace com.ktgame.services.ads
 			
 			if (_nativeCollapsibleAdapterBackFill != null)
 			{
-				_nativeCollapsibleAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeCollapsibleAdapterBackFill);
+				_nativeCollapsibleAdapterBackFill = new AdjustAdRevenueNative(_nativeCollapsibleAdapterBackFill);
 			}
 #endif
 			

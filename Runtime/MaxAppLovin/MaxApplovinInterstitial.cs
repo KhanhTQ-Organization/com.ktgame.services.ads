@@ -9,27 +9,27 @@ using com.ktgame.ads.core;
 
 namespace com.ktgame.ads.max_applovin
 {
-    public class MaxApplovinInterstitial : IInterstitialAdapter
-    {
-        protected string UnitId { private set; get; }
-        public event Action OnLoadSucceeded;
-        public event Action<AdError> OnLoadFailed;
-        public event Action<AdError> OnShowFailed;
-        public event Action<AdPlacement> OnShowSucceeded;
-        public event Action<AdPlacement> OnClicked;
-        public event Action OnClosed;
-        public event Action<ImpressionData> OnImpressionSuccess;
-        public event Action<ImpressionData> OnPaid;
+	public class MaxApplovinInterstitial : IInterstitialAdapter
+	{
+		protected string UnitId { private set; get; }
+		public event Action OnLoadSucceeded;
+		public event Action<AdError> OnLoadFailed;
+		public event Action<AdError> OnShowFailed;
+		public event Action<AdPlacement> OnShowSucceeded;
+		public event Action<AdPlacement> OnClicked;
+		public event Action OnClosed;
+		public event Action<ImpressionData> OnImpressionSuccess;
+		public event Action<ImpressionData> OnPaid;
 #if MAX_APPLOVIN
         public bool IsReady => MaxSdk.IsInterstitialReady(UnitId);
 #else
-        public bool IsReady => true;
+		public bool IsReady => true;
 #endif
-        protected AdPlacement AdPlacement { private set; get; }
+		protected AdPlacement AdPlacement { private set; get; }
 
-        public MaxApplovinInterstitial(string unitId)
-        {
-            UnitId = unitId;
+		public MaxApplovinInterstitial(string unitId)
+		{
+			UnitId = unitId;
 #if MAX_APPLOVIN
             MaxSdkCallbacks.Interstitial.OnAdLoadedEvent += LoadSucceededHandler;
             MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += LoadFailedHandler;
@@ -39,22 +39,28 @@ namespace com.ktgame.ads.max_applovin
             MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent += AdRevenuePaidHandler;
             MaxSdkCallbacks.Interstitial.OnAdDisplayedEvent += ShowSucceededHandler;
 #endif
-        }
+		}
 
-        public void Load()
-        {
+		public void Load()
+		{
 #if MAX_APPLOVIN
-            MaxSdk.LoadInterstitial(UnitId);
+			if (MaxSdk.IsInitialized())
+			{
+				if (!IsReady)
+				{
+					MaxSdk.LoadInterstitial(UnitId);
+				}
+			}
 #endif
-        }
+		}
 
-        public void Show(AdPlacement placement)
-        {
-            AdPlacement = placement;
+		public void Show(AdPlacement placement)
+		{
+			AdPlacement = placement;
 #if MAX_APPLOVIN
             MaxSdk.ShowInterstitial(UnitId, placement.Location);
 #endif
-        }
+		}
 
 #if MAX_APPLOVIN
         private void LoadSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
@@ -95,5 +101,5 @@ namespace com.ktgame.ads.max_applovin
             OnPaid?.Invoke(impressionData);
         }
 #endif
-    }
+	}
 }

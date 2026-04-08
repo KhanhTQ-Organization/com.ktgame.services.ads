@@ -1,6 +1,6 @@
 {
     "name": "com.ktgame.services.ads",
-    "version": "1.0.21",
+    "version": "1.0.22",
     "displayName": "com.ktgame.services.ads",
     "description": "Ads services ads",
     "unity": "2019.4",
@@ -10,7 +10,7 @@
         "url": ""
     },
     "dependencies": {
-        "com.ktgame.ads.core": "1.0.15"
+        "com.ktgame.ads.core": "1.0.24"
     },
     "publishConfig": {
         "registry": "http://3.25.208.95:4873"

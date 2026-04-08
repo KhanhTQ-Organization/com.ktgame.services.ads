@@ -23,6 +23,7 @@ namespace com.ktgame.ads.admob
         public event Action<ImpressionData> OnImpressionSuccess;
         public event Action<AppState> OnAppStateChanged;
         private AdPlacement AdPlacement { get; }
+        private bool _isLoading = false;
         
 #if ADMOB
         protected AppOpenAd AppOpenAd { private set; get; }
@@ -43,9 +44,17 @@ namespace com.ktgame.ads.admob
         public void Load()
         {
 #if ADMOB
+           if (_isLoading)
+            {
+                return;
+            }
+
+            _isLoading = true;
+
             AdRequest request = new AdRequest();
             AppOpenAd.Load(UnitId, request, (ad, error) =>
             {
+                _isLoading = false;
                 if (error != null)
                 {
                     var adError = AdMobExtensions.ToAdError(error, AdPlacement);

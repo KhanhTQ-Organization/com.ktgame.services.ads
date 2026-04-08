@@ -35,6 +35,8 @@ namespace com.ktgame.ads.max_applovin
 		protected RewardedAd RewardedAd { private set; get; }
 #endif
 
+		private bool _isLoading = false;
+		
 		public AdmobRewardVideo(string unitId)
 		{
 			UnitId = unitId;
@@ -43,10 +45,23 @@ namespace com.ktgame.ads.max_applovin
 
 		public void Load()
 		{
+			if (IsReady)
+			{
+				return;
+			}
 #if ADMOB
+			if (_isLoading)
+			{
+				return;
+			}
+
+			_isLoading = true;
+
 			AdRequest request = new AdRequest();
 			RewardedAd.Load(UnitId, request, (ad, error) =>
 			{
+				_isLoading = false;
+
 				if (error != null)
 				{
 					var adError = AdMobExtensions.ToAdError(error, AdPlacement);
