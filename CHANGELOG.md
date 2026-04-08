@@ -1,3 +1,10 @@
+## [1.0.21](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.20...v1.0.21) (2026-04-08)
+
+
+### Bug Fixes
+
+* update ads service, matchrate ([9c93a6a](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/9c93a6aa812f28bc7b400b4a1228e54811903398))
+
 ## [1.0.20](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.19...v1.0.20) (2026-03-31)
 
 
