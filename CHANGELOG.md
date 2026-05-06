@@ -1,3 +1,10 @@
+## [1.0.22](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.21...v1.0.22) (2026-05-06)
+
+
+### Bug Fixes
+
+* rl ([4c1f0f6](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/4c1f0f68432c7bab3fba2834f4341965935e339a))
+
 ## [1.0.21](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.20...v1.0.21) (2026-04-08)
 
 
