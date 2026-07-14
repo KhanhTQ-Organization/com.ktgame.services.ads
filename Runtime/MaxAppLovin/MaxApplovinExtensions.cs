@@ -22,11 +22,19 @@ namespace com.ktgame.ads.max_applovin
         {
             return position switch
             {
-                BannerPosition.Top => MaxSdkBase.BannerPosition.TopCenter,
-                BannerPosition.Bottom => MaxSdkBase.BannerPosition.BottomCenter,
+                BannerPosition.TopLeft => MaxSdkBase.BannerPosition.TopLeft,
+                BannerPosition.TopCenter => MaxSdkBase.BannerPosition.TopCenter,
+                BannerPosition.TopRight => MaxSdkBase.BannerPosition.TopRight,
+                BannerPosition.Centered => MaxSdkBase.BannerPosition.Centered,
+                BannerPosition.CenterLeft => MaxSdkBase.BannerPosition.CenterLeft,
+                BannerPosition.CenterRight => MaxSdkBase.BannerPosition.CenterRight,
+                BannerPosition.BottomLeft => MaxSdkBase.BannerPosition.BottomLeft,
+                BannerPosition.BottomCenter => MaxSdkBase.BannerPosition.BottomCenter,
+                BannerPosition.BottomRight => MaxSdkBase.BannerPosition.BottomRight,
                 _ => MaxSdkBase.BannerPosition.BottomCenter
             };
         }
+
 
         public static ImpressionData ToImpressionData(this MaxSdkBase.AdInfo adInfo, AdFormat adFormat)
         {

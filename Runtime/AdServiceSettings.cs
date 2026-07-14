@@ -92,7 +92,7 @@ namespace com.ktgame.services.ads
 
 		[SerializeField] private BannerSize _bannerSize = BannerSize.Standard;
 
-		[SerializeField] private BannerPosition _bannerPosition = BannerPosition.Bottom;
+		[SerializeField] private BannerPosition _bannerPosition = BannerPosition.BottomCenter;
 
 		[SerializeField] private Vector2 _mRecDp = new Vector2(300, 250);
 
