@@ -1,3 +1,12 @@
+## [1.0.24](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.23...v1.0.24) (2026-08-14)
+
+
+### Bug Fixes
+
+* sw folder + update admobsdk ([3f619fe](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/3f619fee0bcdaceb1094fc5e88a46198ad429dfd))
+* update package ads ([c18ca15](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/c18ca1585197ed9872fcb329c444ae19e35d87c4))
+* update ui ([0e72923](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/0e729239b60f44a95511aab470d9548615abde26))
+
 ## [1.0.23](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.22...v1.0.23) (2026-07-14)
 
 
