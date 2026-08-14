@@ -92,18 +92,28 @@ namespace com.ktgame.services.ads
 
 		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobBannerUnitId;
 
+		[Title("Global Configurations", Bold = true)]
+		[FoldoutGroup("General Settings")]
 		[SerializeField] private BannerSize _bannerSize = BannerSize.Standard;
 
+		[FoldoutGroup("General Settings")]
 		[SerializeField] private BannerPosition _bannerPosition = BannerPosition.BottomCenter;
 
+		[FoldoutGroup("General Settings")]
 		[SerializeField] private Vector2 _mRecDp = new Vector2(300, 250);
 
+		[FoldoutGroup("General Settings")]
 		[SerializeField] private MRecPosition _mRecPosition = MRecPosition.BottomCenter;
 
+		[FoldoutGroup("General Settings")]
+		[PropertySpace(SpaceBefore = 10)]
 		[SerializeField] private int _baseRetryDelay = 1;
 
+		[FoldoutGroup("General Settings")]
 		[SerializeField] private int _maxRetryAttemptRequest = 3;
 
+		[FoldoutGroup("Ad Placements")]
+		[ListDrawerSettings(ShowIndexLabels = true, AddCopiesLastElement = true)]
 		[SerializeField] private List<string> _placements;
 
 		public string AndroidIronSourceAppId => _androidIronSourceAppId;
@@ -180,7 +190,9 @@ namespace com.ktgame.services.ads
 		public int MaxRetryAttemptRequest => _maxRetryAttemptRequest;
 
 #if UNITY_EDITOR
-		[Button("Ads Location Generate")]
+		[FoldoutGroup("Ad Placements")]
+		[PropertySpace(SpaceBefore = 10, SpaceAfter = 10)]
+		[Button("Ads Location Generate", ButtonSizes.Large, Icon = SdfIconType.CodeSlash)]
 		private void AdPlacementGenerate()
 		{
 			if (_placements.Count <= 0)
