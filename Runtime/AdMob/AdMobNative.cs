@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 #if APPSFLYER_ANALYTICS
@@ -43,7 +43,7 @@ namespace com.ktgame.ads.admob
 
         private AdLoader _adLoader;
         private NativeAd _nativeAd;
-        public bool IsReady => _currentNativeAd != null;
+        public bool IsReady => _nativeAd != null;
 #else
 		public bool IsReady => true;
 #endif
@@ -69,12 +69,12 @@ namespace com.ktgame.ads.admob
             _isLoading = true;
             
 #if ADMOB_NATIVE
-            if (_currentNativeAd != null)
+            if (_nativeAd != null)
             {
                 DestroyNative();
             }
 
-            UniTask.WaitUntil(() => _currentNativeAd == null).ContinueWith(() =>
+            UniTask.WaitUntil(() => _nativeAd == null).ContinueWith(() =>
             {
 
                 Debug.Log($"[Native] Loading native ad {UnitId}.");
@@ -115,9 +115,9 @@ namespace com.ktgame.ads.admob
         public void Destroy()
         {
 #if ADMOB_NATIVE
-            if (_currentNativeAd != null)
+            if (_nativeAd != null)
             {
-               _adLoader.OnNativeAdLoaded -= OnLoadSucceededHandler;
+                _adLoader.OnNativeAdLoaded -= OnLoadSucceededHandler;
                 _adLoader.OnAdFailedToLoad -= OnLoadFailedHandler;
                 _adLoader.OnNativeAdClicked -= ClickedHandler;
                 _adLoader.OnNativeAdClosed -= ClosedHandler;
@@ -138,8 +138,8 @@ namespace com.ktgame.ads.admob
 
             UnityMainThreadDispatcher.Instance.Enqueue(() =>
             {
-                _currentNativeAd = nativeAdEventArgs.nativeAd;
-                _currentNativeAd.OnPaidEvent += OnNativeAdImpression;
+                _nativeAd = nativeAdEventArgs.nativeAd;
+                _nativeAd.OnPaidEvent += OnNativeAdImpression;
                 OnLoadSucceeded?.Invoke(AdPlacement);
             });
         }
@@ -153,16 +153,10 @@ namespace com.ktgame.ads.admob
         private void OnLoadFailedHandler(object sender, AdFailedToLoadEventArgs adFailedEventArgs)
         {
             _isLoading = false;
-            _retry++;
             
             var adError = AdMobExtensions.ToAdError(adFailedEventArgs.LoadAdError, AdPlacement);
             OnLoadFailed?.Invoke(adError);
             Debug.LogError($"Native ad failed:{adFailedEventArgs.LoadAdError.GetCode()} - {adFailedEventArgs.LoadAdError.GetMessage()}");
-            UnityMainThreadDispatcher.Instance.Enqueue(() =>
-            {
-                float delay = Mathf.Clamp(Mathf.Pow(2, Mathf.Min(5, _retry)), 2, 40);
-                DOVirtual.DelayedCall(delay, Load);
-            });
         }
 
 #endif

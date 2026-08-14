@@ -16,79 +16,79 @@ namespace com.ktgame.services.ads
 	{
 		public override string PackageName => GetType().Namespace;
 
-		[SerializeField] [TabGroup("IronSource")] private string _androidIronSourceAppId;
+		[HideInInspector, SerializeField] [TabGroup("IronSource")] private string _androidIronSourceAppId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinAppKey;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinAppKey;
 		
-		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinAppOpenUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinAppOpenUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinBannerUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinBannerUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinInterstitialUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinInterstitialUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinRewardedVideoUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinRewardedVideoUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinMRecUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _androidMaxApplovinMRecUnitId;
 
-		[SerializeField] [TabGroup("IronSource")] private string _iOSIronSourceAppId;
+		[HideInInspector, SerializeField] [TabGroup("IronSource")] private string _iOSIronSourceAppId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinAppKey;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinAppKey;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinBannerUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinBannerUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinInterstitialUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinInterstitialUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinRewardedVideoUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinRewardedVideoUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinMrecUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinMrecUnitId;
 
-		[SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinAppOpenUnitId;
+		[HideInInspector, SerializeField] [TabGroup("MaxApplovin")] private string _iOSMaxApplovinAppOpenUnitId;
 
-		[SerializeField] [TabGroup("Amazon")] private string _androidAmazonAppKey;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _androidAmazonAppKey;
 
-		[SerializeField] [TabGroup("Amazon")] private string _androidAmazonBannerUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _androidAmazonBannerUnitId;
 
-		[SerializeField] [TabGroup("Amazon")] private string _androidAmazonInterstitialUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _androidAmazonInterstitialUnitId;
 
-		[SerializeField] [TabGroup("Amazon")] private string _androidAmazonRewardedVideoUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _androidAmazonRewardedVideoUnitId;
 
-		[SerializeField] [TabGroup("Amazon")] private string _iOSAmazonAppKey;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _iOSAmazonAppKey;
 
-		[SerializeField] [TabGroup("Amazon")] private string _iOSAmazonBannerUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _iOSAmazonBannerUnitId;
 
-		[SerializeField] [TabGroup("Amazon")] private string _iOSAmazonInterstitialUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _iOSAmazonInterstitialUnitId;
 
-		[SerializeField] [TabGroup("Amazon")] private string _iOSAmazonRewardedVideoUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Amazon")] private string _iOSAmazonRewardedVideoUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobAppKey;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobAppKey;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobAppOpenUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobAppOpenUnitId;
 		
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobAppOpenResumeUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobAppOpenResumeUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobBannerUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobBannerUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeInterUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeInterUnitId;
 		
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeCollapsibleUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobNativeCollapsibleUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobRewardedVideoUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobRewardedVideoUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobInterstitialUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobInterstitialUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _androidAdmobInterstitialImageUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobInterstitialImageUnitId;
 		
-		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobAppOpenUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobAppOpenUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobNativeUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobNativeUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobRewardedVideoUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobRewardedVideoUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobInterstitialUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobInterstitialUnitId;
 
-		[SerializeField] [TabGroup("Admob")] private string _iOSAdmobBannerUnitId;
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobBannerUnitId;
 
 		[SerializeField] private BannerSize _bannerSize = BannerSize.Standard;
 

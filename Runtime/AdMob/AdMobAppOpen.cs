@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using com.ktgame.ads.core;
 using UnityEngine;
 
@@ -58,10 +58,10 @@ namespace com.ktgame.ads.admob
                 if (error != null)
                 {
                     var adError = AdMobExtensions.ToAdError(error, AdPlacement);
-                    //OnLoadFailed?.Invoke(adError);
+                    OnLoadFailed?.Invoke(adError);
                     return;
                 }
-
+                DestroyAd();
                 AppOpenAd = ad;
                 OnLoadSucceeded?.Invoke();
                 AppOpenAd.OnAdImpressionRecorded += ImpressionSuccessHandler;
@@ -89,6 +89,21 @@ namespace com.ktgame.ads.admob
         }
         
 #if ADMOB
+        private void DestroyAd()
+        {
+            if (AppOpenAd != null)
+            {
+                AppOpenAd.OnAdImpressionRecorded -= ImpressionSuccessHandler;
+                AppOpenAd.OnAdClicked -= ClickedHandler;
+                AppOpenAd.OnAdFullScreenContentOpened -= ShowSucceededHandler;
+                AppOpenAd.OnAdFullScreenContentClosed -= ClosedHandler;
+                AppOpenAd.OnAdFullScreenContentFailed -= ShowFailedHandler;
+                AppOpenAd.OnAdPaid -= AdRevenuePaidHandler;
+                AppOpenAd.Destroy();
+                AppOpenAd = null;
+            }
+        }
+
         private void AdRevenuePaidHandler(AdValue adValue)
         {
             var impressionData = adValue.ToImpressionData(UnitId, AdFormat.AppOpen);
@@ -97,7 +112,7 @@ namespace com.ktgame.ads.admob
 
         private void ImpressionSuccessHandler()
         {
-            OnImpressionSuccess?.Invoke(new ImpressionData(AdPlatform.Admob, "unknown", UnitId, AdFormat.AppOpen, "AppOpen", "USD", 0));
+            // Removed to prevent duplicate impression events (handled by AdRevenuePaidHandler)
         }
 
         private void ClickedHandler()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using com.ktgame.ads.admob;
 using com.ktgame.ads.core;
@@ -21,7 +21,7 @@ namespace com.ktgame.ads.max_applovin
 		public event Action OnVideoClicked;
 		public event Action<AdPlacement> OnRewarded;
 		public event Action<ImpressionData> OnImpressionSuccess;
-		public event Action<ImpressionData> OnPain;
+		public event Action<ImpressionData> OnPaid;
 
 #if ADMOB
 		public bool IsReady => RewardedAd != null && RewardedAd.CanShowAd();
@@ -75,6 +75,7 @@ namespace com.ktgame.ads.max_applovin
 					return;
 				}
 				
+				DestroyAd();
 				RewardedAd = ad;
 				OnLoadSucceeded?.Invoke();
 				
@@ -88,9 +89,26 @@ namespace com.ktgame.ads.max_applovin
 #endif
 		}
 		
+#if ADMOB
+		private void DestroyAd()
+		{
+			if (RewardedAd != null)
+			{
+				RewardedAd.OnAdImpressionRecorded -= ImpressionSuccessHandler;
+				RewardedAd.OnAdClicked -= ClickedHandler;
+				RewardedAd.OnAdFullScreenContentOpened -= ShowSucceededHandler;
+				RewardedAd.OnAdFullScreenContentClosed -= ClosedHandler;
+				RewardedAd.OnAdFullScreenContentFailed -= ShowFailedHandler;
+				RewardedAd.OnAdPaid -= AdRevenuePaidHandler;
+				RewardedAd.Destroy();
+				RewardedAd = null;
+			}
+		}
+#endif
+
 		private void ImpressionSuccessHandler()
 		{
-			OnImpressionSuccess?.Invoke(new ImpressionData(AdPlatform.Admob, "", UnitId, AdFormat.RewardedVideo, "Rewards", "USD", 0));
+			// Removed to prevent duplicate impression events (handled by AdRevenuePaidHandler)
 		}
 
 		public void Show(AdPlacement adPlacement)
@@ -106,13 +124,13 @@ namespace com.ktgame.ads.max_applovin
 
 		private void OnShowRewarded(Reward obj)
 		{
-			
+			OnRewarded?.Invoke(AdPlacement);
 		}
 
 		private void AdRevenuePaidHandler(AdValue adValue)
 		{
 			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.RewardedVideo);
-			OnPain?.Invoke(impressionData);
+			OnPaid?.Invoke(impressionData);
 		}
 		
 		private void ShowFailedHandler(GoogleMobileAds.Api.AdError error)

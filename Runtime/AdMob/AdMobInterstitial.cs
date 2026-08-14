@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 #if APPSFLYER_ANALYTICS
@@ -75,6 +75,7 @@ namespace com.ktgame.ads.admob
 					return;
 				}
 				
+				DestroyAd();
 				InterstitialAd = ad;
 				OnLoadSucceeded?.Invoke();
 				
@@ -96,6 +97,21 @@ namespace com.ktgame.ads.admob
 		}
 		
 #if ADMOB
+		private void DestroyAd()
+		{
+			if (InterstitialAd != null)
+			{
+				InterstitialAd.OnAdImpressionRecorded -= ImpressionSuccessHandler;
+				InterstitialAd.OnAdClicked -= ClickedHandler;
+				InterstitialAd.OnAdFullScreenContentOpened -= ShowSucceededHandler;
+				InterstitialAd.OnAdFullScreenContentClosed -= ClosedHandler;
+				InterstitialAd.OnAdFullScreenContentFailed -= ShowFailedHandler;
+				InterstitialAd.OnAdPaid -= AdRevenuePaidHandler;
+				InterstitialAd.Destroy();
+				InterstitialAd = null;
+			}
+		}
+
 		private void AdRevenuePaidHandler(AdValue adValue)
 		{
 			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.AppOpen);
@@ -104,7 +120,7 @@ namespace com.ktgame.ads.admob
 
 		private void ImpressionSuccessHandler()
 		{
-			OnImpressionSuccess?.Invoke(new ImpressionData(AdPlatform.Admob, "unknow", UnitId, AdFormat.Interstitial, "Interstitial", "USD", 0));
+			// Removed to prevent duplicate impression events (handled by AdRevenuePaidHandler)
 		}
 
 		private void ClickedHandler()

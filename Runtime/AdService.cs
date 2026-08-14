@@ -1,9 +1,6 @@
 using com.ktgame.ads.core;
 using com.ktgame.ads.core.extensions;
-using com.ktgame.ads.max_applovin;
 using com.ktgame.core.di;
-using com.ktgame.services.ads.adjust_ad_revenue;
-using com.ktgame.services.ads.appsflyer_ad_revenue;
 using com.ktgame.services.remote_config;
 
 #if MAX_APPLOVIN
@@ -23,13 +20,16 @@ using com.ktgame.services.ads.adjust_ad_revenue;
 using com.ktgame.services.ads.firebase_ad_revenue;
 #endif
 
+#if APPSFLYER_ANALYTICS
+using com.ktgame.services.ads.appsflyer_ad_revenue;
+#endif
+
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using com.ktgame.core;
 
 namespace com.ktgame.services.ads
 {
-	using com.ktgame.core;
-
 	[Service(typeof(IAdService))]
 	public class AdService : MonoBehaviour, IAdService
 	{
@@ -45,22 +45,6 @@ namespace com.ktgame.services.ads
 		public bool Initialized { get; set; }
 		public IAdAdapter Ad { private set; get; }
 		public IAdAdapter AdBackFill { private set; get; }
-
-		private IBannerAdapter _bannerAdapter;
-		private IInterstitialAdapter _interstitialAdapter;
-		private IRewardVideoAdapter _rewardVideoAdapter;
-		private IAppOpenAdapter _appOpenAdapter;
-		private IMRecAdapter _mRecAdapter;
-
-		private IBannerAdapter _bannerAdBackFillAdapter;
-		private IInterstitialAdapter _interstitialBackFillAdapter;
-		private IInterstitialAdapter _interstitialImageBackFillAdapter;
-		private IRewardVideoAdapter _rewardVideoBackFillAdapter;
-		private IAppOpenAdapter _appOpenBackFillAdapter;
-		private IAppOpenAdapter _appOpenResumeBackFillAdapter;
-		private INativeAdapter _nativeAdapterBackFill;
-		private INativeAdapter _nativeInterAdapterBackFill;
-		private INativeAdapter _nativeCollapsibleAdapterBackFill;
 
 		private AdServiceSettings _settings;
 		private IAASettingSO _iaaSettingSo;
@@ -89,577 +73,289 @@ namespace com.ktgame.services.ads
 			ConsentInformation.Update(request, OnConsentInfoUpdated);
 #endif
 			await UniTask.DelaySeconds(1f);
-			await SetAdsMaxAppLovin();
-			await SetAdsBackFill();
+			await SetMainAds();
+			await SetBackFillAds();
 
 			Initialized = true;
 		}
 
-		private async UniTask SetAdsMaxAppLovin()
+		private string GetUnitId(string newId, string oldId)
 		{
-#if UNITY_ANDROID && MAX_APPLOVIN
-			Ad = new MaxApplovinAdapter(_settings.AndroidMaxApplovinAppKey);
-
-			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinAppOpenUnitId))
-			{
-				_appOpenAdapter = new MaxApplovinAppOpen(_settings.AndroidMaxApplovinAppOpenUnitId);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinBannerUnitId))
-			{
-				_bannerAdapter = new MaxApplovinBanner(_settings.AndroidMaxApplovinBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinInterstitialUnitId))
-			{
-				_interstitialAdapter = new MaxApplovinInterstitial(_settings.AndroidMaxApplovinInterstitialUnitId);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinRewardedVideoUnitId))
-			{
-				_rewardVideoAdapter = new MaxApplovinRewardVideo(_settings.AndroidMaxApplovinRewardedVideoUnitId);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.AndroidMaxApplovinMRecUnitId))
-			{
-				_mRecAdapter = new MaxApplovinMRec(_settings.AndroidMaxApplovinMRecUnitId, _settings.MRecDp, _settings.MRecPosition);
-#if COLLAPSIBLE
-				_mRecCollapsibleAds.Initialize();
-#endif
-			}
-			
-#elif UNITY_IOS && MAX_APPLOVIN
-			Ad = new MaxApplovinAdapter(_settings.IOSMaxApplovinAppKey);
-
-			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinBannerUnitId))
-			{
-				_bannerAdapter = new MaxApplovinBanner(_settings.IOSMaxApplovinBannerUnitId, _settings.BannerSize,
-					_settings.BannerPosition);
-			}
-
-			
-			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinBannerUnitId))
-			{
-				_bannerAdapter = new MaxApplovinBanner(_settings.IOSMaxApplovinBannerUnitId, _settings.BannerSize,
-					_settings.BannerPosition);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinInterstitialUnitId))
-			{
-				_interstitialAdapter = new MaxApplovinInterstitial(_settings.IOSMaxApplovinInterstitialUnitId);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinRewardedVideoUnitId))
-			{
-				_rewardVideoAdapter = new MaxApplovinRewardVideo(_settings.IOSMaxApplovinRewardedVideoUnitId);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinRewardedVideoUnitId))
-			{
-				_appOpenAdapter = new MaxApplovinAppOpen(_settings.IOSMaxApplovinAppOpenUnitId);
-			}
-
-			if (!string.IsNullOrEmpty(_settings.IOSMaxApplovinMRecUnitId))
-			{
-				_mRecAdapter = new MaxApplovinMRec(_settings.IOSMaxApplovinMRecUnitId,_settings.MRecDp,_settings.MRecPosition);
-			}
-#else
-			Ad = new NullAdAdapter();
-			_bannerAdapter = NullBannerAdapter.Instance;
-			_interstitialAdapter = NullInterstitialAdapter.Instance;
-			_rewardVideoAdapter = NullRewardVideoAdapter.Instance;
-			_appOpenAdapter = NullAppOpenAdapter.Instance;
-			_mRecAdapter = NullMRecAdapter.Instance;
-#endif
-
-			var requestStrategy = new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay);
-			if (_bannerAdapter != null)
-			{
-				_bannerAdapter = new AutoRequestBanner(requestStrategy, _bannerAdapter);
-			}
-
-			if (_interstitialAdapter != null)
-			{
-				_interstitialAdapter = new AutoRequestInterstitial(requestStrategy, _interstitialAdapter);
-			}
-
-			if (_rewardVideoAdapter != null)
-			{
-				_rewardVideoAdapter = new AutoRequestRewardVideo(requestStrategy, _rewardVideoAdapter);
-			}
-
-			if (_appOpenAdapter != null)
-			{
-				_appOpenAdapter = new AutoRequestAppOpen(requestStrategy, _appOpenAdapter);
-			}
-
-			if (_mRecAdapter != null)
-			{
-				_mRecAdapter = new AutoRequestMRec(requestStrategy, _mRecAdapter);
-			}
-
-#if FIREBASE_ANALYTICS
-
-			if (_appOpenAdapter != null)
-			{
-				_appOpenAdapter = new FirebaseAdRevenueAppOpen(_appOpenAdapter);
-			}
-
-			if (_bannerAdapter != null)
-			{
-				_bannerAdapter = new FirebaseAdRevenueBanner(_bannerAdapter);
-			}
-
-			if (_interstitialAdapter != null)
-			{
-				_interstitialAdapter = new FirebaseAdRevenueInterstitial(_interstitialAdapter);
-			}
-
-			if (_rewardVideoAdapter != null)
-			{
-				_rewardVideoAdapter = new FirebaseAdRevenueRewardVideo(_rewardVideoAdapter);
-			}
-
-			if (_mRecAdapter != null)
-			{
-				_mRecAdapter = new FirebaseAdRevenueMRec(_mRecAdapter);
-			}
-#endif
-
-#if ADJUST_ANALYTICS
-			
-			if (_appOpenAdapter != null)
-			{
-				_appOpenAdapter = new AdjustAdRevenueAppOpen(_appOpenAdapter);    
-			}
-			
-            if (_bannerAdapter != null)
-            {
-                _bannerAdapter = new AdjustAdRevenueBanner(_bannerAdapter);    
-            }
-
-            if (_interstitialAdapter != null)
-            {
-                _interstitialAdapter = new AdjustAdRevenueInterstitial(_interstitialAdapter);    
-            }
-
-            if (_rewardVideoAdapter != null)
-            {
-                _rewardVideoAdapter = new AdjustAdRevenueRewardVideo(_rewardVideoAdapter);    
-            }
-
-			if (_mRecAdapter != null)
-			{
-				_mRecAdapter = new AdjustAdRevenueMRec(_mRecAdapter);
-			}
-#endif
-
-#if APPSFLYER_ANALYTICS
-			if (_appOpenAdapter != null)
-			{
-				_appOpenAdapter = new AdjustAdRevenueAppOpen(_appOpenAdapter);
-			}
-
-			if (_bannerAdapter != null)
-			{
-				_bannerAdapter = new AppsFlyerAdRevenueBanner(_bannerAdapter);
-			}
-
-			if (_interstitialAdapter != null)
-			{
-				_interstitialAdapter = new AppsFlyerAdRevenueInterstitial(_interstitialAdapter);
-			}
-
-			if (_rewardVideoAdapter != null)
-			{
-				_rewardVideoAdapter = new AppsFlyerAdRevenueRewardsVideo(_rewardVideoAdapter);
-			}
-
-			if (_mRecAdapter != null)
-			{
-				_mRecAdapter = new AppsFlyerAdRevenueMRec(_mRecAdapter);
-			}
-#endif
-
-			if (_bannerAdapter != null)
-			{
-				Ad.SetBanner(_bannerAdapter);
-			}
-
-			if (_interstitialAdapter != null)
-			{
-				Ad.SetInterstitial(_interstitialAdapter);
-			}
-
-			if (_rewardVideoAdapter != null)
-			{
-				Ad.SetRewardVideo(_rewardVideoAdapter);
-			}
-
-			if (_appOpenAdapter != null)
-			{
-				Ad.SetAppOpen(_appOpenAdapter);
-			}
-
-			if (_mRecAdapter != null)
-			{
-				Ad.SetMRec(_mRecAdapter);
-			}
-
-			Ad.Initialize(isInitialized =>
-			{
-				if (isInitialized)
-				{
-					requestStrategy.Request();
-				}
-
-				Initialized = true;
-			});
+			return string.IsNullOrEmpty(newId) ? oldId : newId;
 		}
 
-		private async UniTask SetAdsBackFill()
+		private async UniTask SetMainAds()
 		{
+			switch (_iaaSettingSo.MainMediation)
+			{
+				case IAAMediationFlag.Max:
+					await SetAdsMaxAppLovin(true);
+					break;
+				case IAAMediationFlag.GMA:
+					await SetAdsAdMob(true);
+					break;
+				case IAAMediationFlag.IronSource:
+					Debug.LogWarning("IronSource is selected as Main Mediation but is not fully implemented in AdService yet.");
+					await SetNullAds(true);
+					break;
+				default:
+					// Fallback to legacy behavior if MainMediation isn't set properly
+					await SetAdsMaxAppLovin(true);
+					break;
+			}
+		}
+
+		private async UniTask SetBackFillAds()
+		{
+			switch (_iaaSettingSo.BackfillMediation)
+			{
+				case IAAMediationFlag.Max:
+					await SetAdsMaxAppLovin(false);
+					break;
+				case IAAMediationFlag.GMA:
+					await SetAdsAdMob(false);
+					break;
+				case IAAMediationFlag.IronSource:
+					Debug.LogWarning("IronSource is selected as Backfill Mediation but is not fully implemented in AdService yet.");
+					await SetNullAds(false);
+					break;
+				default:
+					// Fallback to legacy behavior if BackfillMediation isn't set properly
+					await SetAdsAdMob(false);
+					break;
+			}
+		}
+
+		private async UniTask SetNullAds(bool isMain)
+		{
+			IAdAdapter adapter = new NullAdAdapter();
+			ApplyDecoratorsAndInitialize(adapter, null, null, null, null, null, null, null, null, null, null, isMain);
+			await UniTask.CompletedTask;
+		}
+
+		private async UniTask SetAdsMaxAppLovin(bool isMain)
+		{
+			IAdAdapter adapter = new NullAdAdapter();
+			IBannerAdapter bannerAdapter = null;
+			IInterstitialAdapter interstitialAdapter = null;
+			IRewardVideoAdapter rewardVideoAdapter = null;
+			IAppOpenAdapter appOpenAdapter = null;
+			IMRecAdapter mRecAdapter = null;
+
+#if UNITY_ANDROID && MAX_APPLOVIN
+			var appKey = GetUnitId(_iaaSettingSo.MaxAndroid.AppID, _settings.AndroidMaxApplovinAppKey);
+			adapter = new MaxApplovinAdapter(appKey);
+
+			var appOpenId = GetUnitId(_iaaSettingSo.MaxAndroid.AoaUnitID, _settings.AndroidMaxApplovinAppOpenUnitId);
+			if (!string.IsNullOrEmpty(appOpenId)) appOpenAdapter = new MaxApplovinAppOpen(appOpenId);
+
+			var bannerId = GetUnitId(_iaaSettingSo.MaxAndroid.BannerUnitID, _settings.AndroidMaxApplovinBannerUnitId);
+			if (!string.IsNullOrEmpty(bannerId)) bannerAdapter = new MaxApplovinBanner(bannerId, _settings.BannerSize, _settings.BannerPosition);
+
+			var interId = GetUnitId(_iaaSettingSo.MaxAndroid.InterstitialUnitID, _settings.AndroidMaxApplovinInterstitialUnitId);
+			if (!string.IsNullOrEmpty(interId)) interstitialAdapter = new MaxApplovinInterstitial(interId);
+
+			var rewardId = GetUnitId(_iaaSettingSo.MaxAndroid.RewardUnitID, _settings.AndroidMaxApplovinRewardedVideoUnitId);
+			if (!string.IsNullOrEmpty(rewardId)) rewardVideoAdapter = new MaxApplovinRewardVideo(rewardId);
+
+			var mrecId = GetUnitId(_iaaSettingSo.MaxAndroid.MRecUnitID, _settings.AndroidMaxApplovinMRecUnitId);
+			if (!string.IsNullOrEmpty(mrecId)) 
+			{
+				mRecAdapter = new MaxApplovinMRec(mrecId, _settings.MRecDp, _settings.MRecPosition);
+#if COLLAPSIBLE
+				_mRecCollapsibleAds?.Initialize();
+#endif
+			}
+#elif UNITY_IOS && MAX_APPLOVIN
+			var appKey = GetUnitId(_iaaSettingSo.MaxIos.AppID, _settings.IOSMaxApplovinAppKey);
+			adapter = new MaxApplovinAdapter(appKey);
+
+			var appOpenId = GetUnitId(_iaaSettingSo.MaxIos.AoaUnitID, _settings.IOSMaxApplovinAppOpenUnitId);
+			if (!string.IsNullOrEmpty(appOpenId)) appOpenAdapter = new MaxApplovinAppOpen(appOpenId);
+
+			var bannerId = GetUnitId(_iaaSettingSo.MaxIos.BannerUnitID, _settings.IOSMaxApplovinBannerUnitId);
+			if (!string.IsNullOrEmpty(bannerId)) bannerAdapter = new MaxApplovinBanner(bannerId, _settings.BannerSize, _settings.BannerPosition);
+
+			var interId = GetUnitId(_iaaSettingSo.MaxIos.InterstitialUnitID, _settings.IOSMaxApplovinInterstitialUnitId);
+			if (!string.IsNullOrEmpty(interId)) interstitialAdapter = new MaxApplovinInterstitial(interId);
+
+			var rewardId = GetUnitId(_iaaSettingSo.MaxIos.RewardUnitID, _settings.IOSMaxApplovinRewardedVideoUnitId);
+			if (!string.IsNullOrEmpty(rewardId)) rewardVideoAdapter = new MaxApplovinRewardVideo(rewardId);
+
+			var mrecId = GetUnitId(_iaaSettingSo.MaxIos.MRecUnitID, _settings.IOSMaxApplovinMRecUnitId);
+			if (!string.IsNullOrEmpty(mrecId)) mRecAdapter = new MaxApplovinMRec(mrecId, _settings.MRecDp, _settings.MRecPosition);
+#endif
+
+			ApplyDecoratorsAndInitialize(adapter, bannerAdapter, interstitialAdapter, null, rewardVideoAdapter, appOpenAdapter, null, mRecAdapter, null, null, null, isMain);
+			await UniTask.CompletedTask;
+		}
+
+		private async UniTask SetAdsAdMob(bool isMain)
+		{
+			IAdAdapter adapter = new NullAdAdapter();
+			IBannerAdapter bannerAdapter = null;
+			IInterstitialAdapter interstitialAdapter = null;
+			IInterstitialAdapter interstitialImageAdapter = null;
+			IRewardVideoAdapter rewardVideoAdapter = null;
+			IAppOpenAdapter appOpenAdapter = null;
+			IAppOpenAdapter appOpenResumeAdapter = null;
+			IMRecAdapter mRecAdapter = null;
+			INativeAdapter nativeAdapter = null;
+			INativeAdapter nativeInterAdapter = null;
+			INativeAdapter nativeCollapAdapter = null;
+
 #if UNITY_ANDROID && ADMOB
+			var appKey = GetUnitId(_iaaSettingSo.GmaAndroid.AppID, _settings.AndroidAdmobAppKey);
+			adapter = new AdMobAdapter(appKey);
 
-			AdBackFill = new AdMobAdapter(_settings.AndroidMaxApplovinAppKey);
+			var bannerId = GetUnitId(_iaaSettingSo.GmaAndroid.BannerCollapsibleUnitID, _settings.AndroidAdmobBannerUnitId);
+			if (!string.IsNullOrEmpty(bannerId)) bannerAdapter = new AdMobCollapsibleBanner(bannerId, _settings.BannerSize, _settings.BannerPosition);
 
-			if (!string.IsNullOrEmpty(_settings.AndroidAdmobBannerUnitId))
-			{
-				_bannerAdBackFillAdapter = new AdMobCollapsibleBanner(_settings.AndroidAdmobBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
-			}
+			var interId = GetUnitId(_iaaSettingSo.GmaAndroid.InterstitialUnitID, _settings.AndroidAdmobInterstitialUnitId);
+			if (!string.IsNullOrEmpty(interId)) interstitialAdapter = new AdMobInterstitial(interId);
 
-			if (!string.IsNullOrEmpty(_settings.AndroidAdmobRewardedVideoUnitId))
-			{
-				_rewardVideoBackFillAdapter = new AdmobRewardVideo(_settings.AndroidAdmobRewardedVideoUnitId);
-			}
+			var interImageId = _remoteConfigService?.GetValue(RemoteConfigKey.inter_image_ad_id).String 
+                               ?? GetUnitId(_iaaSettingSo.GmaAndroid.InterstitialImageUnitID, _settings.AndroidAdmobInterstitialImageUnitId);
+			if (!string.IsNullOrEmpty(interImageId)) interstitialImageAdapter = new AdMobInterstitial(interImageId);
 
-			if (!string.IsNullOrEmpty(_settings.AndroidAdmobInterstitialUnitId))
-			{
-				_interstitialBackFillAdapter = new AdMobInterstitial(_settings.AndroidAdmobInterstitialUnitId);
-			}
+			var rewardId = GetUnitId(_iaaSettingSo.GmaAndroid.RewardUnitID, _settings.AndroidAdmobRewardedVideoUnitId);
+			if (!string.IsNullOrEmpty(rewardId)) rewardVideoAdapter = new AdmobRewardVideo(rewardId);
 
-			var idImage = _remoteConfigService.GetValue(RemoteConfigKey.inter_image_ad_id).String ?? _settings.AndroidAdmobInterstitialImageUnitId;
-			if (!string.IsNullOrEmpty(idImage))
-			{
-				_interstitialImageBackFillAdapter = new AdMobInterstitial(idImage);
-			}
+			var aoaId = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_id).String 
+                        ?? GetUnitId(_iaaSettingSo.GmaAndroid.AoaUnitID, _settings.AndroidAdmobAppOpenUnitId);
+			if (!string.IsNullOrEmpty(aoaId)) appOpenAdapter = new AdMobAppOpen(aoaId);
 
-			var idAOA = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_id).String ?? _settings.AndroidAdmobAppOpenUnitId;
-			if (!string.IsNullOrEmpty(idAOA))
-			{
-				_appOpenBackFillAdapter = new AdMobAppOpen(idAOA);
-			}
-			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobAppOpenUnitId))
-			{
-				_appOpenBackFillAdapter = new AdMobAppOpen(_settings.AndroidAdmobAppOpenUnitId);
-			}
-			
-			var aoaResume = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_resume_id).String ?? _settings.AndroidAdmobAppOpenResumeUnitId;
-			if (!string.IsNullOrEmpty(aoaResume))
-			{
-				_appOpenResumeBackFillAdapter = new AdMobAppOpen(aoaResume);
-			}
+			var aoaResumeId = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_resume_id).String 
+                              ?? GetUnitId(_iaaSettingSo.GmaAndroid.AoaResumeUnitID, _settings.AndroidAdmobAppOpenResumeUnitId);
+			if (!string.IsNullOrEmpty(aoaResumeId)) appOpenResumeAdapter = new AdMobAppOpen(aoaResumeId);
 
 #if ADMOB_NATIVE
+			var nativeId = _remoteConfigService?.GetValue(RemoteConfigKey.native_ad_id).String 
+                           ?? GetUnitId(_iaaSettingSo.GmaAndroid.NativeUnitID, _settings.AndroidAdmobNativeUnitId);
+			if (!string.IsNullOrEmpty(nativeId)) nativeAdapter = new AdMobNative(nativeId, AdFormat.Native);
 
-			var idNative = _remoteConfigService.GetValue(RemoteConfigKey.native_ad_id).String;
-
-			if (!string.IsNullOrEmpty(idNative))
+			var nativeInterId = _remoteConfigService?.GetValue(RemoteConfigKey.native_interstitial_ad_id).String;
+			if (!string.IsNullOrEmpty(nativeInterId))
 			{
-				_nativeAdapterBackFill = new AdMobNative(idNative, AdFormat.Native);
+				_gmaNativePopup?.Initialize(nativeInterId);
 			}
-			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobNativeUnitId))
+			else
 			{
-				_nativeAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeUnitId, AdFormat.NativeInter);
-			}
-
-			var idNativeInter = _remoteConfigService.GetValue(RemoteConfigKey.native_interstitial_ad_id).String;
-			if (!string.IsNullOrEmpty(idNativeInter))
-			{
-				// _nativeInterAdapterBackFill = new AdMobNative(idNativeInter);
-				_gmaNativePopup.Initialize(idNativeInter);
-			}
-			else if (!string.IsNullOrEmpty(_settings.AndroidAdmobNativeInterUnitId))
-			{
-				_nativeInterAdapterBackFill = new AdMobNative(_settings.AndroidAdmobNativeInterUnitId, AdFormat.NativeCollapsile);
+				nativeInterId = GetUnitId(_iaaSettingSo.GmaAndroid.NativeInterstitialUnitID, _settings.AndroidAdmobNativeInterUnitId);
+				if (!string.IsNullOrEmpty(nativeInterId)) nativeInterAdapter = new AdMobNative(nativeInterId, AdFormat.NativeCollapsile);
 			}
 			
-			var nativeCollap = _remoteConfigService?.GetValue(RemoteConfigKey.native_collap_ad_id).String ?? _settings.AndroidAdmobNativeCollapsibleUnitId;
-			if (!string.IsNullOrEmpty(nativeCollap))
+			var nativeCollapId = _remoteConfigService?.GetValue(RemoteConfigKey.native_collap_ad_id).String 
+                                 ?? GetUnitId(_iaaSettingSo.GmaAndroid.NativeCollapsibleUnitID, _settings.AndroidAdmobNativeCollapsibleUnitId);
+			if (!string.IsNullOrEmpty(nativeCollapId))
 			{
-				_gmaNativeCollapsible.Initialize(nativeCollap);
+				_gmaNativeCollapsible?.Initialize(nativeCollapId);
 			}
-#endif
+#endif // ADMOB_NATIVE
 
 #elif UNITY_IOS && ADMOB
-			AdBackFill = new AdMobAdapter(_settings.IOSAdmobAppOpenUnitId);
+			var appKey = GetUnitId(_iaaSettingSo.GmaIos.AppID, _settings.IOSAdmobAppOpenUnitId); // the legacy logic had a bug using appOpenUnitId
+			adapter = new AdMobAdapter(appKey);
 
-			if (!string.IsNullOrEmpty(_settings.IOSAdmobBannerUnitId))
-			{
-				_bannerAdBackFillAdapter = new AdMobCollapsibleBanner(_settings.IOSAdmobBannerUnitId, _settings.BannerSize, _settings.BannerPosition);
-			}
+			var bannerId = GetUnitId(_iaaSettingSo.GmaIos.BannerCollapsibleUnitID, _settings.IOSAdmobBannerUnitId);
+			if (!string.IsNullOrEmpty(bannerId)) bannerAdapter = new AdMobCollapsibleBanner(bannerId, _settings.BannerSize, _settings.BannerPosition);
 
-			if (!string.IsNullOrEmpty(_settings.IOSAdmobInterstitialUnitId))
-			{
-				_interstitialBackFillAdapter = new AdMobInterstitial(_settings.IOSAdmobInterstitialUnitId);
-			}
+			var interId = GetUnitId(_iaaSettingSo.GmaIos.InterstitialUnitID, _settings.IOSAdmobInterstitialUnitId);
+			if (!string.IsNullOrEmpty(interId)) interstitialAdapter = new AdMobInterstitial(interId);
 
-			if (!string.IsNullOrEmpty(_settings.IOSAdmobInterstitialUnitId))
-			{
-				_interstitialImageBackFillAdapter = new AdMobInterstitial(_settings.IOSAdmobInterstitialUnitId);
-			}
+			var interImageId = GetUnitId(_iaaSettingSo.GmaIos.InterstitialImageUnitID, _settings.IOSAdmobInterstitialUnitId); 
+			if (!string.IsNullOrEmpty(interImageId)) interstitialImageAdapter = new AdMobInterstitial(interImageId);
 
-			if (!string.IsNullOrEmpty(_settings.IOSAdmobRewardedVideoUnitId))
-			{
-				_rewardVideoBackFillAdapter = new AdmobRewardVideo(_settings.IOSAdmobRewardedVideoUnitId);
-			}
+			var rewardId = GetUnitId(_iaaSettingSo.GmaIos.RewardUnitID, _settings.IOSAdmobRewardedVideoUnitId);
+			if (!string.IsNullOrEmpty(rewardId)) rewardVideoAdapter = new AdmobRewardVideo(rewardId);
 
-			if (!string.IsNullOrEmpty(_settings.IOSAdmobAppOpenUnitId))
-			{
-				_appOpenBackFillAdapter = new AdMobAppOpen(_settings.IOSAdmobAppOpenUnitId);
-			}
-#else
-			AdBackFill = new NullAdAdapter();
-			_bannerAdBackFillAdapter = NullBannerAdapter.Instance;
-			_interstitialBackFillAdapter = NullInterstitialAdapter.Instance;
-			_interstitialImageBackFillAdapter = NullInterstitialAdapter.Instance;
-			_rewardVideoBackFillAdapter = NullRewardVideoAdapter.Instance;
-			_appOpenBackFillAdapter = NullAppOpenAdapter.Instance;
-			_nativeAdapterBackFill = NullNativeAdapter.Instance;
-			_nativeInterAdapterBackFill = NullNativeAdapter.Instance;
+			var aoaId = GetUnitId(_iaaSettingSo.GmaIos.AoaUnitID, _settings.IOSAdmobAppOpenUnitId);
+			if (!string.IsNullOrEmpty(aoaId)) appOpenAdapter = new AdMobAppOpen(aoaId);
 #endif
+
+			ApplyDecoratorsAndInitialize(adapter, bannerAdapter, interstitialAdapter, interstitialImageAdapter, rewardVideoAdapter, appOpenAdapter, appOpenResumeAdapter, mRecAdapter, nativeAdapter, nativeInterAdapter, nativeCollapAdapter, isMain);
+			await UniTask.CompletedTask;
+		}
+
+		private void ApplyDecoratorsAndInitialize(
+			IAdAdapter adapter, IBannerAdapter banner, IInterstitialAdapter inter,
+			IInterstitialAdapter interImage, IRewardVideoAdapter reward, IAppOpenAdapter appOpen,
+			IAppOpenAdapter appOpenResume, IMRecAdapter mrec, INativeAdapter native,
+			INativeAdapter nativeInter, INativeAdapter nativeCollap, bool isMain)
+		{
 			var requestStrategy = new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay);
 
-			if (_bannerAdBackFillAdapter != null)
-			{
-				_bannerAdBackFillAdapter = new AutoRequestBanner(requestStrategy, _bannerAdBackFillAdapter);
-			}
-
-			if (_interstitialBackFillAdapter != null)
-			{
-				_interstitialBackFillAdapter = new AutoRequestInterstitial(requestStrategy, _interstitialBackFillAdapter);
-			}
-
-			if (_interstitialImageBackFillAdapter != null)
-			{
-				_interstitialImageBackFillAdapter = new AutoRequestInterstitial(requestStrategy, _interstitialImageBackFillAdapter);
-			}
-
-			if (_rewardVideoBackFillAdapter != null)
-			{
-				_rewardVideoBackFillAdapter = new AutoRequestRewardVideo(requestStrategy, _rewardVideoBackFillAdapter);
-			}
-
-			if (_appOpenBackFillAdapter != null)
-			{
-				_appOpenBackFillAdapter = new AutoRequestAppOpen(requestStrategy, _appOpenBackFillAdapter);
-			}
-			
-			if (_appOpenResumeBackFillAdapter != null)
-			{
-				_appOpenResumeBackFillAdapter = new AutoRequestAppOpen(requestStrategy, _appOpenResumeBackFillAdapter);
-			}
-
-			if (_nativeAdapterBackFill != null)
-			{
-				_nativeAdapterBackFill = new AutoRequestNative(requestStrategy, _nativeAdapterBackFill);
-			}
-
-			if (_nativeInterAdapterBackFill != null)
-			{
-				_nativeInterAdapterBackFill = new AutoRequestNative(requestStrategy, _nativeInterAdapterBackFill);
-			}
+			if (banner != null) banner = new AutoRequestBanner(requestStrategy, banner);
+			if (inter != null) inter = new AutoRequestInterstitial(requestStrategy, inter);
+			if (interImage != null) interImage = new AutoRequestInterstitial(requestStrategy, interImage);
+			if (reward != null) reward = new AutoRequestRewardVideo(requestStrategy, reward);
+			if (appOpen != null) appOpen = new AutoRequestAppOpen(requestStrategy, appOpen);
+			if (appOpenResume != null) appOpenResume = new AutoRequestAppOpen(requestStrategy, appOpenResume);
+			if (mrec != null) mrec = new AutoRequestMRec(requestStrategy, mrec);
+			if (native != null) native = new AutoRequestNative(requestStrategy, native);
+			if (nativeInter != null) nativeInter = new AutoRequestNative(requestStrategy, nativeInter);
+			if (nativeCollap != null) nativeCollap = new AutoRequestNative(requestStrategy, nativeCollap);
 
 #if FIREBASE_ANALYTICS
-			
-			if (_appOpenBackFillAdapter != null)
-			{
-				_appOpenBackFillAdapter = new FirebaseAdRevenueAppOpen(_appOpenBackFillAdapter);
-			}
-			
-			if (_appOpenResumeBackFillAdapter != null)
-			{
-				_appOpenResumeBackFillAdapter = new FirebaseAdRevenueAppOpen(_appOpenResumeBackFillAdapter);
-			}
-			
-			if (_bannerAdBackFillAdapter != null)
-			{
-				_bannerAdBackFillAdapter = new FirebaseAdRevenueBanner(_bannerAdBackFillAdapter);
-			}
-
-			if (_interstitialBackFillAdapter != null)
-			{
-				_interstitialBackFillAdapter = new FirebaseAdRevenueInterstitial(_interstitialBackFillAdapter);
-			}
-
-			if (_interstitialImageBackFillAdapter != null)
-			{
-				_interstitialImageBackFillAdapter = new FirebaseAdRevenueInterstitial(_interstitialImageBackFillAdapter);
-			}
-
-			if (_rewardVideoBackFillAdapter != null)
-			{
-				_rewardVideoBackFillAdapter = new FirebaseAdRevenueRewardVideo(_rewardVideoBackFillAdapter);
-			}
-
-			if (_nativeAdapterBackFill != null)
-			{
-				_nativeAdapterBackFill = new FirebaseAdRevenueNative(_nativeAdapterBackFill);
-			}
-
-			if (_nativeInterAdapterBackFill != null)
-			{
-				_nativeInterAdapterBackFill = new FirebaseAdRevenueNative(_nativeInterAdapterBackFill);
-			}
-
-			if (_nativeCollapsibleAdapterBackFill != null)
-			{
-				_nativeCollapsibleAdapterBackFill = new FirebaseAdRevenueNative(_nativeCollapsibleAdapterBackFill);
-			}
+			if (banner != null) banner = new FirebaseAdRevenueBanner(banner);
+			if (inter != null) inter = new FirebaseAdRevenueInterstitial(inter);
+			if (interImage != null) interImage = new FirebaseAdRevenueInterstitial(interImage);
+			if (reward != null) reward = new FirebaseAdRevenueRewardVideo(reward);
+			if (appOpen != null) appOpen = new FirebaseAdRevenueAppOpen(appOpen);
+			if (appOpenResume != null) appOpenResume = new FirebaseAdRevenueAppOpen(appOpenResume);
+			if (mrec != null) mrec = new FirebaseAdRevenueMRec(mrec);
+			if (native != null) native = new FirebaseAdRevenueNative(native);
+			if (nativeInter != null) nativeInter = new FirebaseAdRevenueNative(nativeInter);
+			if (nativeCollap != null) nativeCollap = new FirebaseAdRevenueNative(nativeCollap);
 #endif
 
 #if ADJUST_ANALYTICS
-			
-			if (_interstitialImageBackFillAdapter != null)
-			{
-				_interstitialImageBackFillAdapter = new AdjustAdRevenueInterstitial(_interstitialImageBackFillAdapter);
-			}
-
-			if (_interstitialBackFillAdapter != null)
-			{
-				_interstitialBackFillAdapter = new AdjustAdRevenueInterstitial(_interstitialBackFillAdapter);
-			}
-
-			if (_rewardVideoBackFillAdapter != null)
-			{
-				_rewardVideoBackFillAdapter = new AdjustAdRevenueRewardVideo(_rewardVideoBackFillAdapter);
-			}
-			
-			if (_appOpenBackFillAdapter != null)
-			{
-				_appOpenBackFillAdapter = new AdjustAdRevenueAppOpen(_appOpenBackFillAdapter);
-			}
-			
-			if (_appOpenResumeBackFillAdapter != null)
-			{
-				_appOpenResumeBackFillAdapter = new AdjustAdRevenueAppOpen(_appOpenResumeBackFillAdapter);
-			}
-
-			if (_nativeAdapterBackFill != null)
-			{
-				_nativeAdapterBackFill = new AdjustAdRevenueNative(_nativeAdapterBackFill);
-			}
-			
-			if (_nativeInterAdapterBackFill != null)
-			{
-				_nativeInterAdapterBackFill = new AdjustAdRevenueNative(_nativeInterAdapterBackFill);
-			}
-			
-			if (_nativeCollapsibleAdapterBackFill != null)
-			{
-				_nativeCollapsibleAdapterBackFill = new AdjustAdRevenueNative(_nativeCollapsibleAdapterBackFill);
-			}
+			if (banner != null) banner = new AdjustAdRevenueBanner(banner);
+			if (inter != null) inter = new AdjustAdRevenueInterstitial(inter);
+			if (interImage != null) interImage = new AdjustAdRevenueInterstitial(interImage);
+			if (reward != null) reward = new AdjustAdRevenueRewardVideo(reward);
+			if (appOpen != null) appOpen = new AdjustAdRevenueAppOpen(appOpen);
+			if (appOpenResume != null) appOpenResume = new AdjustAdRevenueAppOpen(appOpenResume);
+			if (mrec != null) mrec = new AdjustAdRevenueMRec(mrec);
+			if (native != null) native = new AdjustAdRevenueNative(native);
+			if (nativeInter != null) nativeInter = new AdjustAdRevenueNative(nativeInter);
+			if (nativeCollap != null) nativeCollap = new AdjustAdRevenueNative(nativeCollap);
 #endif
-			
+
 #if APPSFLYER_ANALYTICS
-			
-			if (_interstitialImageBackFillAdapter != null)
-			{
-				_interstitialImageBackFillAdapter = new AppsFlyerAdRevenueInterstitial(_interstitialImageBackFillAdapter);
-			}
-
-			if (_interstitialBackFillAdapter != null)
-			{
-				_interstitialBackFillAdapter = new AppsFlyerAdRevenueInterstitial(_interstitialBackFillAdapter);
-			}
-
-			if (_rewardVideoBackFillAdapter != null)
-			{
-				_rewardVideoBackFillAdapter = new AppsFlyerAdRevenueRewardsVideo(_rewardVideoBackFillAdapter);
-			}
-			
-			if (_appOpenBackFillAdapter != null)
-			{
-				_appOpenBackFillAdapter = new AppsFlyerAdRevenueAppOpen(_appOpenBackFillAdapter);
-			}
-			
-			if (_appOpenResumeBackFillAdapter != null)
-			{
-				_appOpenResumeBackFillAdapter = new AppsFlyerAdRevenueAppOpen(_appOpenResumeBackFillAdapter);
-			}
-
-			if (_nativeAdapterBackFill != null)
-			{
-				_nativeAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeAdapterBackFill);
-			}
-			
-			if (_nativeInterAdapterBackFill != null)
-			{
-				_nativeInterAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeInterAdapterBackFill);
-			}
-			
-			if (_nativeCollapsibleAdapterBackFill != null)
-			{
-				_nativeCollapsibleAdapterBackFill = new AppsFlyerAdRevenueNative(_nativeCollapsibleAdapterBackFill);
-			}
+			if (banner != null) banner = new AppsFlyerAdRevenueBanner(banner);
+			if (inter != null) inter = new AppsFlyerAdRevenueInterstitial(inter);
+			if (interImage != null) interImage = new AppsFlyerAdRevenueInterstitial(interImage);
+			if (reward != null) reward = new AppsFlyerAdRevenueRewardsVideo(reward);
+			if (appOpen != null) appOpen = new AppsFlyerAdRevenueAppOpen(appOpen);
+			if (appOpenResume != null) appOpenResume = new AppsFlyerAdRevenueAppOpen(appOpenResume);
+			if (mrec != null) mrec = new AppsFlyerAdRevenueMRec(mrec);
+			if (native != null) native = new AppsFlyerAdRevenueNative(native);
+			if (nativeInter != null) nativeInter = new AppsFlyerAdRevenueNative(nativeInter);
+			if (nativeCollap != null) nativeCollap = new AppsFlyerAdRevenueNative(nativeCollap);
 #endif
 
-			if (_bannerAdBackFillAdapter != null)
-			{
-				AdBackFill.SetBanner(_bannerAdBackFillAdapter);
-			}
+			if (banner != null) adapter.SetBanner(banner);
+			if (inter != null) adapter.SetInterstitial(inter);
+			if (interImage != null) adapter.SetInterstitialImage(interImage);
+			if (reward != null) adapter.SetRewardVideo(reward);
+			if (appOpen != null) adapter.SetAppOpen(appOpen);
+			if (appOpenResume != null) adapter.SetAppOpenResume(appOpenResume);
+			if (mrec != null) adapter.SetMRec(mrec);
+			if (native != null) adapter.SetNative(native);
+			if (nativeInter != null) adapter.SetNativeInter(nativeInter);
+			if (nativeCollap != null) adapter.SetNativeCollapsible(nativeCollap);
 
-			if (_interstitialBackFillAdapter != null)
-			{
-				AdBackFill.SetInterstitial(_interstitialBackFillAdapter);
-			}
+			if (isMain) Ad = adapter;
+			else AdBackFill = adapter;
 
-			if (_interstitialImageBackFillAdapter != null)
-			{
-				AdBackFill.SetInterstitialImage(_interstitialImageBackFillAdapter);
-			}
-
-			if (_rewardVideoBackFillAdapter != null)
-			{
-				AdBackFill.SetRewardVideo(_rewardVideoBackFillAdapter);
-			}
-
-			if (_appOpenBackFillAdapter != null)
-			{
-				AdBackFill.SetAppOpen(_appOpenBackFillAdapter);
-			}
-			
-			if (_appOpenResumeBackFillAdapter != null)
-			{
-				AdBackFill.SetAppOpenResume(_appOpenResumeBackFillAdapter);
-			}
-
-			if (_nativeAdapterBackFill != null)
-			{
-				AdBackFill.SetNative(_nativeAdapterBackFill);
-			}
-
-			if (_nativeInterAdapterBackFill != null)
-			{
-				AdBackFill.SetNativeInter(_nativeInterAdapterBackFill);
-			}
-
-			if (_nativeCollapsibleAdapterBackFill != null)
-			{
-				AdBackFill.SetNativeCollapsible(_nativeCollapsibleAdapterBackFill);
-			}
-
-#if ADMOB
-			AdBackFill.Initialize(isInitialized =>
+			adapter.Initialize(isInitialized =>
 			{
 				if (isInitialized)
 				{
 					requestStrategy.Request();
 				}
-
-				Initialized = true;
 			});
-#endif
 		}
 
 #if ADMOB
