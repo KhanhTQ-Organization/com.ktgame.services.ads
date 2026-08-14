@@ -295,42 +295,51 @@ namespace com.ktgame.services.ads
 			if (nativeCollap != null) nativeCollap = new AutoRequestNative(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), nativeCollap);
 
 #if FIREBASE_ANALYTICS
-			if (banner != null) banner = new FirebaseAdRevenueBanner(banner);
-			if (inter != null) inter = new FirebaseAdRevenueInterstitial(inter);
-			if (interImage != null) interImage = new FirebaseAdRevenueInterstitial(interImage);
-			if (reward != null) reward = new FirebaseAdRevenueRewardVideo(reward);
-			if (appOpen != null) appOpen = new FirebaseAdRevenueAppOpen(appOpen);
-			if (appOpenResume != null) appOpenResume = new FirebaseAdRevenueAppOpen(appOpenResume);
-			if (mrec != null) mrec = new FirebaseAdRevenueMRec(mrec);
-			if (native != null) native = new FirebaseAdRevenueNative(native);
-			if (nativeInter != null) nativeInter = new FirebaseAdRevenueNative(nativeInter);
-			if (nativeCollap != null) nativeCollap = new FirebaseAdRevenueNative(nativeCollap);
+			if (RevenueAdSetting.Instance.ActiveProviders.HasFlag(AnalyticsProvider.Firebase))
+			{
+				if (banner != null) banner = new FirebaseAdRevenueBanner(banner);
+				if (inter != null) inter = new FirebaseAdRevenueInterstitial(inter);
+				if (interImage != null) interImage = new FirebaseAdRevenueInterstitial(interImage);
+				if (reward != null) reward = new FirebaseAdRevenueRewardVideo(reward);
+				if (appOpen != null) appOpen = new FirebaseAdRevenueAppOpen(appOpen);
+				if (appOpenResume != null) appOpenResume = new FirebaseAdRevenueAppOpen(appOpenResume);
+				if (mrec != null) mrec = new FirebaseAdRevenueMRec(mrec);
+				if (native != null) native = new FirebaseAdRevenueNative(native);
+				if (nativeInter != null) nativeInter = new FirebaseAdRevenueNative(nativeInter);
+				if (nativeCollap != null) nativeCollap = new FirebaseAdRevenueNative(nativeCollap);
+			}
 #endif
 
 #if ADJUST_ANALYTICS
-			if (banner != null) banner = new AdjustAdRevenueBanner(banner);
-			if (inter != null) inter = new AdjustAdRevenueInterstitial(inter);
-			if (interImage != null) interImage = new AdjustAdRevenueInterstitial(interImage);
-			if (reward != null) reward = new AdjustAdRevenueRewardVideo(reward);
-			if (appOpen != null) appOpen = new AdjustAdRevenueAppOpen(appOpen);
-			if (appOpenResume != null) appOpenResume = new AdjustAdRevenueAppOpen(appOpenResume);
-			if (mrec != null) mrec = new AdjustAdRevenueMRec(mrec);
-			if (native != null) native = new AdjustAdRevenueNative(native);
-			if (nativeInter != null) nativeInter = new AdjustAdRevenueNative(nativeInter);
-			if (nativeCollap != null) nativeCollap = new AdjustAdRevenueNative(nativeCollap);
+			if (RevenueAdSetting.Instance.ActiveProviders.HasFlag(AnalyticsProvider.Adjust))
+			{
+				if (banner != null) banner = new AdjustAdRevenueBanner(banner);
+				if (inter != null) inter = new AdjustAdRevenueInterstitial(inter);
+				if (interImage != null) interImage = new AdjustAdRevenueInterstitial(interImage);
+				if (reward != null) reward = new AdjustAdRevenueRewardVideo(reward);
+				if (appOpen != null) appOpen = new AdjustAdRevenueAppOpen(appOpen);
+				if (appOpenResume != null) appOpenResume = new AdjustAdRevenueAppOpen(appOpenResume);
+				if (mrec != null) mrec = new AdjustAdRevenueMRec(mrec);
+				if (native != null) native = new AdjustAdRevenueNative(native);
+				if (nativeInter != null) nativeInter = new AdjustAdRevenueNative(nativeInter);
+				if (nativeCollap != null) nativeCollap = new AdjustAdRevenueNative(nativeCollap);
+			}
 #endif
 
 #if APPSFLYER_ANALYTICS
-			if (banner != null) banner = new AppsFlyerAdRevenueBanner(banner);
-			if (inter != null) inter = new AppsFlyerAdRevenueInterstitial(inter);
-			if (interImage != null) interImage = new AppsFlyerAdRevenueInterstitial(interImage);
-			if (reward != null) reward = new AppsFlyerAdRevenueRewardsVideo(reward);
-			if (appOpen != null) appOpen = new AppsFlyerAdRevenueAppOpen(appOpen);
-			if (appOpenResume != null) appOpenResume = new AppsFlyerAdRevenueAppOpen(appOpenResume);
-			if (mrec != null) mrec = new AppsFlyerAdRevenueMRec(mrec);
-			if (native != null) native = new AppsFlyerAdRevenueNative(native);
-			if (nativeInter != null) nativeInter = new AppsFlyerAdRevenueNative(nativeInter);
-			if (nativeCollap != null) nativeCollap = new AppsFlyerAdRevenueNative(nativeCollap);
+			if (RevenueAdSetting.Instance.ActiveProviders.HasFlag(AnalyticsProvider.AppsFlyer))
+			{
+				if (banner != null) banner = new AppsFlyerAdRevenueBanner(banner);
+				if (inter != null) inter = new AppsFlyerAdRevenueInterstitial(inter);
+				if (interImage != null) interImage = new AppsFlyerAdRevenueInterstitial(interImage);
+				if (reward != null) reward = new AppsFlyerAdRevenueRewardsVideo(reward);
+				if (appOpen != null) appOpen = new AppsFlyerAdRevenueAppOpen(appOpen);
+				if (appOpenResume != null) appOpenResume = new AppsFlyerAdRevenueAppOpen(appOpenResume);
+				if (mrec != null) mrec = new AppsFlyerAdRevenueMRec(mrec);
+				if (native != null) native = new AppsFlyerAdRevenueNative(native);
+				if (nativeInter != null) nativeInter = new AppsFlyerAdRevenueNative(nativeInter);
+				if (nativeCollap != null) nativeCollap = new AppsFlyerAdRevenueNative(nativeCollap);
+			}
 #endif
 
 			if (banner != null) adapter.SetBanner(banner);

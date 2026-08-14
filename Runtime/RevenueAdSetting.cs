@@ -11,6 +11,8 @@ namespace com.ktgame.services.ads
 		public override string PackageName => GetType().Namespace;
 		public IReadOnlyList<AdRevenueProviderSetting> Providers => _providers;
 		
+		[HideInInspector] public AnalyticsProvider ActiveProviders;
+		
 		[Title("Revenue Providers")]
 		[ListDrawerSettings(Expanded = true)]
 		[SerializeField]

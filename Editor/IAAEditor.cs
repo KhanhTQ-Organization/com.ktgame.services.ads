@@ -47,6 +47,9 @@ namespace com.ktgame.services.ads.editor
 				{
 					_setting.MediationFlag = value;
 				}
+#if UNITY_EDITOR
+				UnityEditor.EditorUtility.SetDirty(_setting);
+#endif
 			}
 		}
 

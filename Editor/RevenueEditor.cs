@@ -9,15 +9,23 @@ namespace com.ktgame.services.ads.editor
         private KTSettingSO _setting;
         private RevenueAdSetting _revenueSetting;
 
+        [Title("Analytics Configuration", "Manage your analytics SDKs and ad revenue tracking.", TitleAlignments.Centered)]
+        [InfoBox("Select your analytics providers. Revenue tracking requires configuring the supported ad formats for each provider.", InfoMessageType.Info)]
+        [PropertyOrder(-10)]
+        [ShowInInspector, HideLabel, DisplayAsString(false)]
+        private string _header = "";
+
         public RevenueEditor(KTSettingSO setting, RevenueAdSetting revenueSetting)
         {
             _setting = setting;
             _revenueSetting = revenueSetting;
+            FirebaseAndroid = revenueSetting;
         }
         
-        [PropertySpace(20)]
-        [Title("Analytics Setting", Bold = true)]
-        [LabelText("Analytics SDK"), LabelWidth(150), ShowInInspector, EnumToggleButtons]
+        [BoxGroup("Analytics Strategy", CenterLabel = true)]
+        [PropertyOrder(0)]
+        [PropertySpace(SpaceBefore = 10, SpaceAfter = 10)]
+        [LabelText("Active SDKs"), LabelWidth(150), ShowInInspector, EnumToggleButtons]
         public AnalyticsProvider AnalyticsSDKProvider
         {
             get => _setting.AnalyticsProvider;
@@ -37,20 +45,27 @@ namespace com.ktgame.services.ads.editor
                 {
                     _setting.AnalyticsProvider = value;
                 }
+                
+                if (_revenueSetting != null)
+                {
+                    _revenueSetting.ActiveProviders = _setting.AnalyticsProvider;
+#if UNITY_EDITOR
+                    UnityEditor.EditorUtility.SetDirty(_revenueSetting);
+#endif
+                }
+                
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(_setting);
+#endif
             }
         }
         
-        [ShowIf("@(AnalyticsSDKProvider.HasFlag(AnalyticsProvider.Firebase))"),
-         TabGroup("Platform", "Android", SdfIconType.Robot),
-         ShowInInspector, HideReferenceObjectPicker,
-         BoxGroup("Platform/Android/Revenue Config"),
-         InlineEditor(Expanded = true),
-         HideLabel, Indent(1)]
-        public RevenueAdSetting FirebaseAndroid
-        {
-            get => _revenueSetting;
-            set => _revenueSetting = value;
-        }
+        [BoxGroup("Ad Revenue Tracking", CenterLabel = true)]
+        [PropertyOrder(10)]
+        [TabGroup("Ad Revenue Tracking/Platform", "Android", SdfIconType.Robot)]
+        [ShowInInspector, HideReferenceObjectPicker, HideLabel, Indent(1)]
+        [InlineEditor(InlineEditorObjectFieldModes.CompletelyHidden)]
+        public RevenueAdSetting FirebaseAndroid;
         
         private void ForceProvider(AnalyticsProvider provider)
         {
