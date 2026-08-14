@@ -112,7 +112,7 @@ namespace com.ktgame.ads.admob
 
         }
 
-        public void Destroy()
+        public void Dispose()
         {
 #if ADMOB_NATIVE
             if (_nativeAd != null)

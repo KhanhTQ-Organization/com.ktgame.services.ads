@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -13,11 +13,21 @@ namespace com.ktgame.services.ads
 
         public void Update()
         {
+            Action[] actions = null;
             lock (_executionQueue)
             {
-                while (_executionQueue.Count > 0)
+                if (_executionQueue.Count > 0)
                 {
-                    _executionQueue.Dequeue().Invoke();
+                    actions = _executionQueue.ToArray();
+                    _executionQueue.Clear();
+                }
+            }
+            
+            if (actions != null)
+            {
+                for (int i = 0; i < actions.Length; i++)
+                {
+                    actions[i].Invoke();
                 }
             }
         }

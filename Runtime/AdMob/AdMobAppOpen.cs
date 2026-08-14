@@ -61,7 +61,7 @@ namespace com.ktgame.ads.admob
                     OnLoadFailed?.Invoke(adError);
                     return;
                 }
-                DestroyAd();
+                Dispose();
                 AppOpenAd = ad;
                 OnLoadSucceeded?.Invoke();
                 AppOpenAd.OnAdImpressionRecorded += ImpressionSuccessHandler;
@@ -136,5 +136,12 @@ namespace com.ktgame.ads.admob
             OnShowFailed?.Invoke(error);
         }
 #endif
-    }
+    
+        public void Dispose()
+        {
+#if ADMOB
+            DestroyAd();
+#endif
+        }
+}
 }

@@ -44,22 +44,28 @@ namespace com.ktgame.ads.max_applovin
 #if MAX_APPLOVIN    
 		public void OnMRecAdLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
 		{
+			if (adUnitId != UnitId) return;
+			_isReady = true;
 			OnLoadSucceeded?.Invoke(AdPlacement);
 		}
 		
 		public void OnMRecAdLoadFailedEvent(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
 		{
+			if (adUnitId != UnitId) return;
+			_isReady = false;
 			var adError = errorInfo.Code.ToErrorCode(AdPlacement);
 			OnLoadFailed?.Invoke(adError);
 		}
 
 		public void OnMRecAdClickedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
 		{
+			if (adUnitId != UnitId) return;
 			OnClicked?.Invoke(AdPlacement);
 		}
 		
 		private void OnMRecAdRevenuePaidEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
 		{
+			if (adUnitId != UnitId) return;
 			var impressionData = adInfo.ToImpressionData(AdFormat.MRec);
 			OnImpressionSuccess?.Invoke(impressionData);
 		}
@@ -94,10 +100,16 @@ namespace com.ktgame.ads.max_applovin
 #endif
 		}
 
-		public void Destroy()
+		public void Dispose()
         {
 #if MAX_APPLOVIN
+			MaxSdkCallbacks.MRec.OnAdLoadedEvent -= OnMRecAdLoadedEvent;
+			MaxSdkCallbacks.MRec.OnAdLoadFailedEvent -= OnMRecAdLoadFailedEvent;
+			MaxSdkCallbacks.MRec.OnAdClickedEvent -= OnMRecAdClickedEvent;
+			MaxSdkCallbacks.MRec.OnAdRevenuePaidEvent -= OnMRecAdRevenuePaidEvent;
+
 			MaxSdk.DestroyMRec(UnitId);
+			_isReady = false;
 #endif
         }
     }

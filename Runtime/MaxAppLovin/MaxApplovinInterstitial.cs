@@ -49,6 +49,7 @@ namespace com.ktgame.ads.max_applovin
 				if (!IsReady)
 				{
 					MaxSdk.LoadInterstitial(UnitId);
+
 				}
 			}
 #endif
@@ -65,41 +66,61 @@ namespace com.ktgame.ads.max_applovin
 #if MAX_APPLOVIN
         private void LoadSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnLoadSucceeded?.Invoke();
         }
 
         private void LoadFailedHandler(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
+			if (adUnitId != UnitId) return;
             var adError = errorInfo.Code.ToErrorCode(AdPlacement);
             OnLoadFailed?.Invoke(adError);
         }
 
         private void ShowSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnShowSucceeded?.Invoke(AdPlacement);
         }
 
         private void ShowFailedHandler(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             var adError = errorInfo.Code.ToErrorCode(AdPlacement);
             OnShowFailed?.Invoke(adError);
         }
 
         private void ClickedHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnClicked?.Invoke(AdPlacement);
         }
 
         private void ClosedHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnClosed?.Invoke();
         }
 
         private void AdRevenuePaidHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             var impressionData = adInfo.ToImpressionData(AdFormat.Interstitial);
             OnPaid?.Invoke(impressionData);
         }
 #endif
+		public void Dispose()
+		{
+#if MAX_APPLOVIN
+			MaxSdkCallbacks.Interstitial.OnAdLoadedEvent -= LoadSucceededHandler;
+			MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent -= LoadFailedHandler;
+			MaxSdkCallbacks.Interstitial.OnAdDisplayFailedEvent -= ShowFailedHandler;
+			MaxSdkCallbacks.Interstitial.OnAdHiddenEvent -= ClosedHandler;
+			MaxSdkCallbacks.Interstitial.OnAdClickedEvent -= ClickedHandler;
+			MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent -= AdRevenuePaidHandler;
+			MaxSdkCallbacks.Interstitial.OnAdDisplayedEvent -= ShowSucceededHandler;
+#endif
+		}
+
 	}
 }

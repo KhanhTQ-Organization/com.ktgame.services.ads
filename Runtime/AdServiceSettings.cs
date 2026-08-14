@@ -80,6 +80,8 @@ namespace com.ktgame.services.ads
 
 		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _androidAdmobInterstitialImageUnitId;
 		
+		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobAppKey;
+
 		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobAppOpenUnitId;
 
 		[HideInInspector, SerializeField] [TabGroup("Admob")] private string _iOSAdmobNativeUnitId;
@@ -129,6 +131,7 @@ namespace com.ktgame.services.ads
 		public string AndroidAdmobInterstitialUnitId => _androidAdmobInterstitialUnitId;
 		public string AndroidAdmobInterstitialImageUnitId => _androidAdmobInterstitialImageUnitId;
 		public string AndroidAdmobNativeCollapsibleUnitId => _androidAdmobNativeCollapsibleUnitId;
+		public string IOSAdmobAppKey => _iOSAdmobAppKey;
 		public string IOSAdmobAppOpenUnitId => _iOSAdmobAppOpenUnitId;
 
 		public string IOSAdmobNativeUnitId => _iOSAdmobNativeUnitId;

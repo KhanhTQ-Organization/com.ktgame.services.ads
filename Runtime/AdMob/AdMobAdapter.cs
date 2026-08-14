@@ -108,5 +108,19 @@ namespace com.ktgame.ads.admob
 		{
 			NativeCollapsible = nativeCollapsibleAdapter;
 		}
+
+		public void Dispose()
+		{
+			Banner?.Dispose();
+			Interstitial?.Dispose();
+			InterstitialImage?.Dispose();
+			RewardVideo?.Dispose();
+			AppOpen?.Dispose();
+			AppOpenResume?.Dispose();
+			MRec?.Dispose();
+			Native?.Dispose();
+			NativeInter?.Dispose();
+			NativeCollapsible?.Dispose();
+		}
 	}
 }

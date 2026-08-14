@@ -18,7 +18,7 @@ namespace com.ktgame.services.ads.firebase_ad_revenue
 			base.ImpressionSuccessHandler(impressionData);
 			if (_rewardVideoConfig != null)
 			{
-				FirebaseMeasureAdRevenue.SendAdEvent(_rewardVideoConfig?.EventLoadSucceeded, null);
+				FirebaseMeasureAdRevenue.LogAdRevenueEvent(impressionData);
 			}
 		}
 

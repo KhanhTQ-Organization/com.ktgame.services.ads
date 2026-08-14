@@ -75,7 +75,7 @@ namespace com.ktgame.ads.admob
 					return;
 				}
 				
-				DestroyAd();
+				Dispose();
 				InterstitialAd = ad;
 				OnLoadSucceeded?.Invoke();
 				
@@ -144,5 +144,12 @@ namespace com.ktgame.ads.admob
 			OnShowFailed?.Invoke(error);
 		}
 #endif
+
+		public void Dispose()
+		{
+#if ADMOB
+			DestroyAd();
+#endif
+		}
 	}
 }

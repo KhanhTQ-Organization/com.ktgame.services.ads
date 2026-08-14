@@ -53,6 +53,7 @@ namespace com.ktgame.ads.max_applovin
 				if (!IsReady)
 				{
 					 MaxSdk.LoadRewardedAd(UnitId);
+
 				}
 			}
 #endif
@@ -69,46 +70,67 @@ namespace com.ktgame.ads.max_applovin
 #if MAX_APPLOVIN
         private void RevenuePaidHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             var impressionData = adInfo.ToImpressionData(AdFormat.RewardedVideo);
             OnPaid?.Invoke(impressionData);
         }
 
         private void LoadSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnLoadSucceeded?.Invoke();
         }
 
         private void LoadFailedHandler(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
+			if (adUnitId != UnitId) return;
             var adError = errorInfo.Code.ToErrorCode(AdPlacement);
             OnLoadFailed?.Invoke(adError);
         }
 
         private void ShowFailedHandler(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             var adError = errorInfo.Code.ToErrorCode(AdPlacement);
             OnShowFailed?.Invoke(adError);
         }
 
         private void ShowSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnVideoOpened?.Invoke();
         }
 
         private void ClickedHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnVideoClicked?.Invoke();
         }
 
         private void ClosedHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnVideoClosed?.Invoke();
         }
 
         private void ReceivedRewardHandler(string adUnitId, MaxSdkBase.Reward reward, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitId != UnitId) return;
             OnRewarded?.Invoke(AdPlacement);
         }
 #endif
+		public void Dispose()
+		{
+#if MAX_APPLOVIN
+			MaxSdkCallbacks.Rewarded.OnAdLoadedEvent -= LoadSucceededHandler;
+			MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent -= LoadFailedHandler;
+			MaxSdkCallbacks.Rewarded.OnAdDisplayFailedEvent -= ShowFailedHandler;
+			MaxSdkCallbacks.Rewarded.OnAdDisplayedEvent -= ShowSucceededHandler;
+			MaxSdkCallbacks.Rewarded.OnAdClickedEvent -= ClickedHandler;
+			MaxSdkCallbacks.Rewarded.OnAdHiddenEvent -= ClosedHandler;
+			MaxSdkCallbacks.Rewarded.OnAdReceivedRewardEvent -= ReceivedRewardHandler;
+			MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent -= RevenuePaidHandler;
+#endif
+		}
     }
 }

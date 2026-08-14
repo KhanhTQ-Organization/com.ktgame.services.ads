@@ -75,7 +75,7 @@ namespace com.ktgame.ads.max_applovin
 					return;
 				}
 				
-				DestroyAd();
+				Dispose();
 				RewardedAd = ad;
 				OnLoadSucceeded?.Invoke();
 				
@@ -154,5 +154,12 @@ namespace com.ktgame.ads.max_applovin
 			OnVideoClosed?.Invoke();
 		}
 #endif
+
+		public void Dispose()
+		{
+#if ADMOB
+			DestroyAd();
+#endif
+		}
 	}
 }

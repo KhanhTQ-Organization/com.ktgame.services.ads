@@ -59,9 +59,13 @@ namespace com.ktgame.ads.max_applovin
 #endif
         }
 
-        public void Destroy()
+        public void Dispose()
         {
-#if MAX_APPLOVIN    
+#if MAX_APPLOVIN
+			MaxSdkCallbacks.Banner.OnAdLoadedEvent -= LoadSucceedHandler;
+			MaxSdkCallbacks.Banner.OnAdLoadFailedEvent -= LoadFailedHandler;
+			MaxSdkCallbacks.Banner.OnAdRevenuePaidEvent -= AdRevenuePaidHandler;
+    
             MaxSdk.DestroyBanner(UnitId);
 #endif
         }
@@ -69,17 +73,20 @@ namespace com.ktgame.ads.max_applovin
 #if MAX_APPLOVIN    
         private void AdRevenuePaidHandler(string adUnitIdentifier, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitIdentifier != UnitId) return;
             var impressionData = adInfo.ToImpressionData(AdFormat.Banner);
             OnImpressionSuccess?.Invoke(impressionData);
         }
 
         private void LoadFailedHandler(string adUnitIdentifier, MaxSdkBase.ErrorInfo errorInfo)
         {
+			if (adUnitIdentifier != UnitId) return;
             OnLoadFailed?.Invoke(errorInfo.Code.ToErrorCode(AdPlacement));
         }
 
         private void LoadSucceedHandler(string adUnitIdentifier, MaxSdkBase.AdInfo adInfo)
         {
+			if (adUnitIdentifier != UnitId) return;
             OnLoadSucceeded?.Invoke(AdPlacement);
         }
 #endif

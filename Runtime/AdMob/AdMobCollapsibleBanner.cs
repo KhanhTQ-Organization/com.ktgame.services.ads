@@ -34,7 +34,7 @@ namespace com.ktgame.ads.admob
 		public void Load()
 		{
 #if ADMOB
-			Destroy();
+			Dispose();
 
 			GoogleMobileAds.Api.AdSize adSize = GoogleMobileAds.Api.AdSize.Banner;
 			if (AdSize == com.ktgame.ads.core.BannerSize.SmartBanner)
@@ -109,7 +109,7 @@ namespace com.ktgame.ads.admob
 #endif
 		}
 
-		public void Destroy()
+		public void Dispose()
 		{
 #if ADMOB
 			if (_bannerView != null)

@@ -254,7 +254,7 @@ namespace com.ktgame.services.ads
 #endif // ADMOB_NATIVE
 
 #elif UNITY_IOS && ADMOB
-			var appKey = GetUnitId(_iaaSettingSo.GmaIos.AppID, _settings.IOSAdmobAppOpenUnitId); // the legacy logic had a bug using appOpenUnitId
+			var appKey = GetUnitId(_iaaSettingSo.GmaIos.AppID, _settings.IOSAdmobAppKey); // the legacy logic had a bug using appOpenUnitId
 			adapter = new AdMobAdapter(appKey);
 
 			var bannerId = GetUnitId(_iaaSettingSo.GmaIos.BannerCollapsibleUnitID, _settings.IOSAdmobBannerUnitId);
@@ -283,18 +283,16 @@ namespace com.ktgame.services.ads
 			IAppOpenAdapter appOpenResume, IMRecAdapter mrec, INativeAdapter native,
 			INativeAdapter nativeInter, INativeAdapter nativeCollap, bool isMain)
 		{
-			var requestStrategy = new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay);
-
-			if (banner != null) banner = new AutoRequestBanner(requestStrategy, banner);
-			if (inter != null) inter = new AutoRequestInterstitial(requestStrategy, inter);
-			if (interImage != null) interImage = new AutoRequestInterstitial(requestStrategy, interImage);
-			if (reward != null) reward = new AutoRequestRewardVideo(requestStrategy, reward);
-			if (appOpen != null) appOpen = new AutoRequestAppOpen(requestStrategy, appOpen);
-			if (appOpenResume != null) appOpenResume = new AutoRequestAppOpen(requestStrategy, appOpenResume);
-			if (mrec != null) mrec = new AutoRequestMRec(requestStrategy, mrec);
-			if (native != null) native = new AutoRequestNative(requestStrategy, native);
-			if (nativeInter != null) nativeInter = new AutoRequestNative(requestStrategy, nativeInter);
-			if (nativeCollap != null) nativeCollap = new AutoRequestNative(requestStrategy, nativeCollap);
+			if (banner != null) banner = new AutoRequestBanner(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), banner);
+			if (inter != null) inter = new AutoRequestInterstitial(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), inter);
+			if (interImage != null) interImage = new AutoRequestInterstitial(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), interImage);
+			if (reward != null) reward = new AutoRequestRewardVideo(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), reward);
+			if (appOpen != null) appOpen = new AutoRequestAppOpen(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), appOpen);
+			if (appOpenResume != null) appOpenResume = new AutoRequestAppOpen(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), appOpenResume);
+			if (mrec != null) mrec = new AutoRequestMRec(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), mrec);
+			if (native != null) native = new AutoRequestNative(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), native);
+			if (nativeInter != null) nativeInter = new AutoRequestNative(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), nativeInter);
+			if (nativeCollap != null) nativeCollap = new AutoRequestNative(new ExponentialCooldown(_settings.MaxRetryAttemptRequest, _settings.BaseRetryDelay), nativeCollap);
 
 #if FIREBASE_ANALYTICS
 			if (banner != null) banner = new FirebaseAdRevenueBanner(banner);
@@ -346,14 +344,47 @@ namespace com.ktgame.services.ads
 			if (nativeInter != null) adapter.SetNativeInter(nativeInter);
 			if (nativeCollap != null) adapter.SetNativeCollapsible(nativeCollap);
 
-			if (isMain) Ad = adapter;
-			else AdBackFill = adapter;
+			if (isMain) 
+			{
+				Ad?.Dispose();
+				Ad = adapter;
+			}
+			else 
+			{
+				AdBackFill?.Dispose();
+				AdBackFill = adapter;
+			}
 
 			adapter.Initialize(isInitialized =>
 			{
 				if (isInitialized)
 				{
-					requestStrategy.Request();
+					if (isMain)
+					{
+						Ad.Banner?.Load();
+						Ad.Interstitial?.Load();
+						Ad.InterstitialImage?.Load();
+						Ad.RewardVideo?.Load();
+						Ad.AppOpen?.Load();
+						Ad.AppOpenResume?.Load();
+						Ad.MRec?.Load();
+						Ad.Native?.Load();
+						Ad.NativeInter?.Load();
+						Ad.NativeCollapsible?.Load();
+					}
+					else
+					{
+						AdBackFill.Banner?.Load();
+						AdBackFill.Interstitial?.Load();
+						AdBackFill.InterstitialImage?.Load();
+						AdBackFill.RewardVideo?.Load();
+						AdBackFill.AppOpen?.Load();
+						AdBackFill.AppOpenResume?.Load();
+						AdBackFill.MRec?.Load();
+						AdBackFill.Native?.Load();
+						AdBackFill.NativeInter?.Load();
+						AdBackFill.NativeCollapsible?.Load();
+					}
 				}
 			});
 		}
