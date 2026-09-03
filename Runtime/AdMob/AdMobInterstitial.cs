@@ -114,8 +114,9 @@ namespace com.ktgame.ads.admob
 
 		private void AdRevenuePaidHandler(AdValue adValue)
 		{
-			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.AppOpen);
+			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.Interstitial);
 			OnPaid?.Invoke(impressionData);
+			OnImpressionSuccess?.Invoke(impressionData);
 		}
 
 		private void ImpressionSuccessHandler()

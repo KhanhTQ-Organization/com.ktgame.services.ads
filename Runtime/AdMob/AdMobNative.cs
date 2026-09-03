@@ -147,7 +147,9 @@ namespace com.ktgame.ads.admob
         private void OnNativeAdImpression(object sender, AdValueEventArgs e)
         {
             double revenue = e.AdValue.Value / 1000000d;
-            OnPaid?.Invoke(new ImpressionData(AdPlatform.Admob, "unknow", UnitId, AdFormat.Native, _format.ToString(), "USD", revenue));
+            var impressionData = new ImpressionData(AdPlatform.Admob, "unknow", UnitId, AdFormat.Native, _format.ToString(), "USD", revenue);
+            OnPaid?.Invoke(impressionData);
+            OnImpressionSuccess?.Invoke(impressionData);
         }
 
         private void OnLoadFailedHandler(object sender, AdFailedToLoadEventArgs adFailedEventArgs)

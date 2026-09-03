@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 #if APPSFLYER_ANALYTICS
@@ -107,6 +107,7 @@ namespace com.ktgame.ads.max_applovin
 			if (adUnitId != UnitId) return;
             var impressionData = adInfo.ToImpressionData(AdFormat.Interstitial);
             OnPaid?.Invoke(impressionData);
+            OnImpressionSuccess?.Invoke(impressionData);
         }
 #endif
 		public void Dispose()

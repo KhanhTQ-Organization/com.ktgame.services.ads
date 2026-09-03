@@ -73,6 +73,7 @@ namespace com.ktgame.ads.max_applovin
 			if (adUnitId != UnitId) return;
             var impressionData = adInfo.ToImpressionData(AdFormat.RewardedVideo);
             OnPaid?.Invoke(impressionData);
+            OnImpressionSuccess?.Invoke(impressionData);
         }
 
         private void LoadSucceededHandler(string adUnitId, MaxSdkBase.AdInfo adInfo)

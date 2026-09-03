@@ -131,6 +131,7 @@ namespace com.ktgame.ads.max_applovin
 		{
 			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.RewardedVideo);
 			OnPaid?.Invoke(impressionData);
+			OnImpressionSuccess?.Invoke(impressionData);
 		}
 		
 		private void ShowFailedHandler(GoogleMobileAds.Api.AdError error)
