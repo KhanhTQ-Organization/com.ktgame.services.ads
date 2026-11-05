@@ -1,3 +1,10 @@
+## [1.0.28](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.27...v1.0.28) (2026-11-05)
+
+
+### Bug Fixes
+
+* update revenue ([6d8db38](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/commit/6d8db381127aa29f734c638563d11bba717936b4))
+
 ## [1.0.27](https://github.com/KhanhTQ-Organization/com.ktgame.services.ads/compare/v1.0.26...v1.0.27) (2026-11-05)
 
 
