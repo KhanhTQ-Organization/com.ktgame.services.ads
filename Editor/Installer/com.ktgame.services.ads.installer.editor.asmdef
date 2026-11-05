@@ -1,0 +1,19 @@
+{
+    "name": "com.ktgame.services.ads.installer.editor",
+    "rootNamespace": "com.ktgame.services.ads.editor",
+    "references": [
+        "GUID:07fa84c8891424e60a3080653dd9d1e0",
+        "GUID:ea2ae37156ab74bd0b7bf06641413d82"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

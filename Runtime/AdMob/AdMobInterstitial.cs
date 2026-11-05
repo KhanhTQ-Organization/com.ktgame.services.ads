@@ -39,7 +39,7 @@ namespace com.ktgame.ads.admob
 		public AdMobInterstitial(string unitId)
 		{
 			UnitId = unitId;
-			AdPlacement = new AdPlacement("AppOpen");
+			AdPlacement = new AdPlacement("Interstitial");
 		}
 		
 		public void Load()
@@ -91,6 +91,12 @@ namespace com.ktgame.ads.admob
 		public void Show(AdPlacement adPlacement)
 		{
 			AdPlacement = adPlacement;
+			if (!IsReady)
+			{
+				OnShowFailed?.Invoke(new AdError(adPlacement, AdErrorCode.NoAdToShow, "Interstitial is not ready."));
+				return;
+			}
+
 #if ADMOB
 			InterstitialAd.Show();
 #endif

@@ -1,18 +1,18 @@
 {
-    "name": "com.ktgame.services.ads",
-    "version": "1.0.26",
-    "displayName": "com.ktgame.services.ads",
-    "description": "Ads services ads",
-    "unity": "2019.4",
-    "author": {
-        "name": "ktgame",
-        "email": "khanhquang0912qh@gmail.com",
-        "url": ""
-    },
-    "dependencies": {
-        "com.ktgame.ads.core": "1.0.25"
-    },
-    "publishConfig": {
-        "registry": "http://3.25.115.5:4873"
-    }
+  "name": "com.ktgame.services.ads",
+  "version": "1.0.26",
+  "displayName": "com.ktgame.services.ads",
+  "description": "Ads services ads",
+  "unity": "2019.4",
+  "author": {
+    "name": "ktgame",
+    "email": "khanhquang0912qh@gmail.com",
+    "url": ""
+  },
+  "dependencies": {
+    "com.ktgame.ads.core": "1.0.28"
+  },
+  "publishConfig": {
+    "registry": "http://3.25.115.5:4873"
+  }
 }

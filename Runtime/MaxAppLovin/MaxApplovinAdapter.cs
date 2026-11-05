@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using com.ktgame.ads.core;
 
 namespace com.ktgame.ads.max_applovin
@@ -28,6 +28,9 @@ namespace com.ktgame.ads.max_applovin
 			AppOpen = NullAppOpenAdapter.Instance;
 			MRec = NullMRecAdapter.Instance;
 			Native = NullNativeAdapter.Instance;
+			AppOpenResume = NullAppOpenAdapter.Instance;
+			NativeInter = NullNativeInterAdapter.Instance;
+			NativeCollapsible = NullNativeAdapter.Instance;
 		}
 
 		public void Initialize(Action<bool> onComplete)

@@ -27,7 +27,7 @@ namespace com.ktgame.services.ads.editor
 			var instanceRevenue = RevenueAdSetting.Instance;
 			if (instanceRevenue != null)
 			{
-				EditorUtility.SetDirty(instance);
+				EditorUtility.SetDirty(instanceRevenue);
 			}
 		}
 

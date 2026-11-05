@@ -1,4 +1,4 @@
-﻿using com.ktgame.ads.core;
+using com.ktgame.ads.core;
 
 namespace com.ktgame.ads.max_applovin
 {
@@ -35,6 +35,23 @@ namespace com.ktgame.ads.max_applovin
             };
         }
 
+
+        public static MaxSdkBase.AdViewPosition ToMaxApplovinAdViewPosition(this MRecPosition position)
+        {
+            return position switch
+            {
+                MRecPosition.TopLeft => MaxSdkBase.AdViewPosition.TopLeft,
+                MRecPosition.TopCenter => MaxSdkBase.AdViewPosition.TopCenter,
+                MRecPosition.TopRight => MaxSdkBase.AdViewPosition.TopRight,
+                MRecPosition.Centered => MaxSdkBase.AdViewPosition.Centered,
+                MRecPosition.CenterLeft => MaxSdkBase.AdViewPosition.CenterLeft,
+                MRecPosition.CenterRight => MaxSdkBase.AdViewPosition.CenterRight,
+                MRecPosition.BottomLeft => MaxSdkBase.AdViewPosition.BottomLeft,
+                MRecPosition.BottomCenter => MaxSdkBase.AdViewPosition.BottomCenter,
+                MRecPosition.BottomRight => MaxSdkBase.AdViewPosition.BottomRight,
+                _ => MaxSdkBase.AdViewPosition.Centered
+            };
+        }
 
         public static ImpressionData ToImpressionData(this MaxSdkBase.AdInfo adInfo, AdFormat adFormat)
         {

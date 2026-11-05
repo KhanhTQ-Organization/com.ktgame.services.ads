@@ -1,10 +1,14 @@
 using System;
 using com.ktgame.ads.core;
+using com.ktgame.services.ads;
 using UnityEngine;
 
 #if ADMOB
 using GoogleMobileAds.Api;
 #endif
+
+using AdError = com.ktgame.ads.core.AdError;
+using AdFormat = com.ktgame.ads.core.AdFormat;
 
 namespace com.ktgame.ads.admob
 {
@@ -31,20 +35,25 @@ namespace com.ktgame.ads.admob
 			AdPlacement = new AdPlacement("Banner");
 		}
 
+		private bool IsTopPosition =>
+			AdPosition == BannerPosition.TopLeft ||
+			AdPosition == BannerPosition.TopCenter ||
+			AdPosition == BannerPosition.TopRight;
+
 		public void Load()
 		{
 #if ADMOB
 			Dispose();
 
 			GoogleMobileAds.Api.AdSize adSize = GoogleMobileAds.Api.AdSize.Banner;
-			if (AdSize == com.ktgame.ads.core.BannerSize.SmartBanner)
+			if (AdSize == com.ktgame.ads.core.BannerSize.Smart)
 			{
 				adSize = GoogleMobileAds.Api.AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(GoogleMobileAds.Api.AdSize.FullWidth);
 			}
 			
 			GoogleMobileAds.Api.AdPosition position = GoogleMobileAds.Api.AdPosition.Bottom;
 			string collapsiblePos = "bottom";
-			if (AdPosition == BannerPosition.Top)
+			if (IsTopPosition)
 			{
 				position = GoogleMobileAds.Api.AdPosition.Top;
 				collapsiblePos = "top";

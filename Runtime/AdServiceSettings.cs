@@ -110,11 +110,28 @@ namespace com.ktgame.services.ads
 		[SerializeField] private int _baseRetryDelay = 1;
 
 		[FoldoutGroup("General Settings")]
-		[SerializeField] private int _maxRetryAttemptRequest = 3;
+		[SerializeField] private int _maxRetryAttemptRequest = 6;
 
 		[FoldoutGroup("Ad Placements")]
 		[ListDrawerSettings(ShowIndexLabels = true, AddCopiesLastElement = true)]
 		[SerializeField] private List<string> _placements;
+
+		[HideInInspector]
+		[SerializeField] private bool _tagForUnderAgeOfConsent = false;
+
+		[HideInInspector]
+		[SerializeField, MinValue(1)] private float _consentUpdateTimeoutSeconds = 8f;
+
+		[HideInInspector]
+		[SerializeField] private UmpDebugGeography _umpDebugGeography = UmpDebugGeography.Disabled;
+
+		[HideInInspector]
+		[SerializeField] private List<string> _umpTestDeviceHashedIds = new List<string>();
+
+		public bool TagForUnderAgeOfConsent => _tagForUnderAgeOfConsent;
+		public float ConsentUpdateTimeoutSeconds => _consentUpdateTimeoutSeconds;
+		public UmpDebugGeography UmpDebugGeography => _umpDebugGeography;
+		public IReadOnlyList<string> UmpTestDeviceHashedIds => _umpTestDeviceHashedIds ?? (IReadOnlyList<string>)System.Array.Empty<string>();
 
 		public string AndroidIronSourceAppId => _androidIronSourceAppId;
 

@@ -1,0 +1,8 @@
+<linker>
+    <assembly fullname="com.ktgame.services.ads" ignoreIfMissing="1">
+        <namespace fullname="com.ktgame.services.ads" preserve="all"/>
+    </assembly>
+    <assembly fullname="com.ktgame.ads.core" ignoreIfMissing="1">
+        <namespace fullname="com.ktgame.ads.core" preserve="all"/>
+    </assembly>
+</linker>

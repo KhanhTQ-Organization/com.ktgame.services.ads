@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using com.ktgame.ads.admob;
 using com.ktgame.ads.core;
 #if ADMOB
 using GoogleMobileAds.Api;
-using AppsFlyerSDK;
 #endif
 using AdError = com.ktgame.ads.core.AdError;
 using AdFormat = com.ktgame.ads.core.AdFormat;
 
-namespace com.ktgame.ads.max_applovin
+namespace com.ktgame.ads.admob
 {
 	public class AdmobRewardVideo : IRewardVideoAdapter
 	{
@@ -114,6 +112,12 @@ namespace com.ktgame.ads.max_applovin
 		public void Show(AdPlacement adPlacement)
 		{
 			AdPlacement = adPlacement;
+			if (!IsReady)
+			{
+				OnShowFailed?.Invoke(new AdError(adPlacement, AdErrorCode.NoAdToShow, "Rewarded ad is not ready."));
+				return;
+			}
+
 #if ADMOB
 			RewardedAd.Show(OnShowRewarded);
 #endif

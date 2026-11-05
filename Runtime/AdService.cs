@@ -1,3 +1,4 @@
+using System;
 using com.ktgame.ads.core;
 using com.ktgame.ads.core.extensions;
 using com.ktgame.core.di;
@@ -9,7 +10,6 @@ using com.ktgame.ads.max_applovin;
 
 #if ADMOB
 using com.ktgame.ads.admob;
-using GoogleMobileAds.Ump.Api;
 #endif
 
 #if ADJUST_ANALYTICS
@@ -33,56 +33,80 @@ namespace com.ktgame.services.ads
 	[Service(typeof(IAdService))]
 	public class AdService : MonoBehaviour, IAdService
 	{
+		private const string LogTag = "[AdService]";
+
 		[Inject] private IRemoteConfigService _remoteConfigService;
-		
+
 #if COLLAPSIBLE
 		[Inject] private IGmaNativeInterstitial _gmaNativePopup;
 		[Inject] private IGmaNativeCollapsible _gmaNativeCollapsible;
 		[Inject] private IMRecCollapsibleAds  _mRecCollapsibleAds;
 #endif
-		
+
 		public int Priority => 2;
 		public bool Initialized { get; set; }
 		public IAdAdapter Ad { private set; get; }
 		public IAdAdapter AdBackFill { private set; get; }
+		public bool AdsStarted => _adsStarted;
 
 		private AdServiceSettings _settings;
 		private IAASettingSO _iaaSettingSo;
-#if ADMOB
-		private ConsentForm _consentForm;
-#endif
+		private bool _adsStarted;
+		private AdConsentManager _consent;
+
 		public async UniTask OnInitialize(IArchitecture architecture)
 		{
 			_settings = AdServiceSettings.Instance;
 			_iaaSettingSo = IAASettingSO.Instance;
-#if PRODUCTION
-			//_remoteConfigService ??= Game.Instance.GetService<IRemoteConfigService>();
-#if COLLAPSIBLE
+#if PRODUCTION && COLLAPSIBLE
 			_gmaNativePopup ??= Game.Instance.GetService<IGmaNativeInterstitial>();
 			_gmaNativeCollapsible  ??= Game.Instance.GetService<IGmaNativeCollapsible>();
 			_mRecCollapsibleAds  ??= Game.Instance.GetService<IMRecCollapsibleAds>();
 #endif
-#endif
+			
+			_consent = new AdConsentManager(_settings);
+			_consent.OnConsentChanged += TryStartAds;
+			var consentTask = _consent.GatherAsync();
 
-#if ADMOB
-			ConsentRequestParameters request = new ConsentRequestParameters
-			{
-				TagForUnderAgeOfConsent = false,
-			};
-
-			ConsentInformation.Update(request, OnConsentInfoUpdated);
-#endif
 			await UniTask.DelaySeconds(1f);
 			await SetMainAds();
 			await SetBackFillAds();
 
 			Initialized = true;
+
+			StartAdsWhenAllowedAsync(consentTask).Forget();
 		}
 
-		private string GetUnitId(string newId, string oldId)
+		#region Unit id resolution (P0.3)
+
+		private static string GetUnitId(string newId, string oldId)
 		{
-			return string.IsNullOrEmpty(newId) ? oldId : newId;
+			return string.IsNullOrWhiteSpace(newId) ? oldId?.Trim() : newId.Trim();
 		}
+		
+		private string GetRemoteOrLocalUnitId(string remoteKey, string newId, string oldId)
+		{
+			string remoteId = null;
+			try
+			{
+				remoteId = _remoteConfigService?.GetValue(remoteKey)?.String;
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning($"{LogTag} Remote config '{remoteKey}' unreadable, using local id. {e.Message}");
+			}
+
+			if (!string.IsNullOrWhiteSpace(remoteId))
+			{
+				return remoteId.Trim();
+			}
+
+			return GetUnitId(newId, oldId);
+		}
+
+		#endregion
+
+		#region Build adapters
 
 		private async UniTask SetMainAds()
 		{
@@ -99,7 +123,6 @@ namespace com.ktgame.services.ads
 					await SetNullAds(true);
 					break;
 				default:
-					// Fallback to legacy behavior if MainMediation isn't set properly
 					await SetAdsMaxAppLovin(true);
 					break;
 			}
@@ -120,7 +143,6 @@ namespace com.ktgame.services.ads
 					await SetNullAds(false);
 					break;
 				default:
-					// Fallback to legacy behavior if BackfillMediation isn't set properly
 					await SetAdsAdMob(false);
 					break;
 			}
@@ -129,7 +151,7 @@ namespace com.ktgame.services.ads
 		private async UniTask SetNullAds(bool isMain)
 		{
 			IAdAdapter adapter = new NullAdAdapter();
-			ApplyDecoratorsAndInitialize(adapter, null, null, null, null, null, null, null, null, null, null, isMain);
+			ApplyDecorators(adapter, null, null, null, null, null, null, null, null, null, null, isMain);
 			await UniTask.CompletedTask;
 		}
 
@@ -159,7 +181,7 @@ namespace com.ktgame.services.ads
 			if (!string.IsNullOrEmpty(rewardId)) rewardVideoAdapter = new MaxApplovinRewardVideo(rewardId);
 
 			var mrecId = GetUnitId(_iaaSettingSo.MaxAndroid.MRecUnitID, _settings.AndroidMaxApplovinMRecUnitId);
-			if (!string.IsNullOrEmpty(mrecId)) 
+			if (!string.IsNullOrEmpty(mrecId))
 			{
 				mRecAdapter = new MaxApplovinMRec(mrecId, _settings.MRecDp, _settings.MRecPosition);
 #if COLLAPSIBLE
@@ -186,7 +208,7 @@ namespace com.ktgame.services.ads
 			if (!string.IsNullOrEmpty(mrecId)) mRecAdapter = new MaxApplovinMRec(mrecId, _settings.MRecDp, _settings.MRecPosition);
 #endif
 
-			ApplyDecoratorsAndInitialize(adapter, bannerAdapter, interstitialAdapter, null, rewardVideoAdapter, appOpenAdapter, null, mRecAdapter, null, null, null, isMain);
+			ApplyDecorators(adapter, bannerAdapter, interstitialAdapter, null, rewardVideoAdapter, appOpenAdapter, null, mRecAdapter, null, null, null, isMain);
 			await UniTask.CompletedTask;
 		}
 
@@ -214,43 +236,46 @@ namespace com.ktgame.services.ads
 			var interId = GetUnitId(_iaaSettingSo.GmaAndroid.InterstitialUnitID, _settings.AndroidAdmobInterstitialUnitId);
 			if (!string.IsNullOrEmpty(interId)) interstitialAdapter = new AdMobInterstitial(interId);
 
-			var interImageId = _remoteConfigService?.GetValue(RemoteConfigKey.inter_image_ad_id).String 
-                               ?? GetUnitId(_iaaSettingSo.GmaAndroid.InterstitialImageUnitID, _settings.AndroidAdmobInterstitialImageUnitId);
+			var interImageId = GetRemoteOrLocalUnitId(AdRemoteConfigKeys.InterImageAdId,
+				_iaaSettingSo.GmaAndroid.InterstitialImageUnitID, _settings.AndroidAdmobInterstitialImageUnitId);
 			if (!string.IsNullOrEmpty(interImageId)) interstitialImageAdapter = new AdMobInterstitial(interImageId);
 
 			var rewardId = GetUnitId(_iaaSettingSo.GmaAndroid.RewardUnitID, _settings.AndroidAdmobRewardedVideoUnitId);
 			if (!string.IsNullOrEmpty(rewardId)) rewardVideoAdapter = new AdmobRewardVideo(rewardId);
 
-			var aoaId = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_id).String 
-                        ?? GetUnitId(_iaaSettingSo.GmaAndroid.AoaUnitID, _settings.AndroidAdmobAppOpenUnitId);
+			var aoaId = GetRemoteOrLocalUnitId(AdRemoteConfigKeys.OpenAdId,
+				_iaaSettingSo.GmaAndroid.AoaUnitID, _settings.AndroidAdmobAppOpenUnitId);
 			if (!string.IsNullOrEmpty(aoaId)) appOpenAdapter = new AdMobAppOpen(aoaId);
 
-			var aoaResumeId = _remoteConfigService?.GetValue(RemoteConfigKey.open_ad_resume_id).String 
-                              ?? GetUnitId(_iaaSettingSo.GmaAndroid.AoaResumeUnitID, _settings.AndroidAdmobAppOpenResumeUnitId);
+			var aoaResumeId = GetRemoteOrLocalUnitId(AdRemoteConfigKeys.OpenAdResumeId,
+				_iaaSettingSo.GmaAndroid.AoaResumeUnitID, _settings.AndroidAdmobAppOpenResumeUnitId);
 			if (!string.IsNullOrEmpty(aoaResumeId)) appOpenResumeAdapter = new AdMobAppOpen(aoaResumeId);
 
 #if ADMOB_NATIVE
-			var nativeId = _remoteConfigService?.GetValue(RemoteConfigKey.native_ad_id).String 
-                           ?? GetUnitId(_iaaSettingSo.GmaAndroid.NativeUnitID, _settings.AndroidAdmobNativeUnitId);
+			var nativeId = GetRemoteOrLocalUnitId(AdRemoteConfigKeys.NativeAdId,
+				_iaaSettingSo.GmaAndroid.NativeUnitID, _settings.AndroidAdmobNativeUnitId);
 			if (!string.IsNullOrEmpty(nativeId)) nativeAdapter = new AdMobNative(nativeId, AdFormat.Native);
 
-			var nativeInterId = _remoteConfigService?.GetValue(RemoteConfigKey.native_interstitial_ad_id).String;
+			var nativeInterId = GetRemoteOrLocalUnitId(AdRemoteConfigKeys.NativeInterstitialAdId,
+				_iaaSettingSo.GmaAndroid.NativeInterstitialUnitID, _settings.AndroidAdmobNativeInterUnitId);
 			if (!string.IsNullOrEmpty(nativeInterId))
 			{
+#if COLLAPSIBLE
+				// Game-side native popup implementation owns this unit.
 				_gmaNativePopup?.Initialize(nativeInterId);
+#else
+				nativeInterAdapter = new AdMobNative(nativeInterId, AdFormat.NativeInter);
+#endif
 			}
-			else
-			{
-				nativeInterId = GetUnitId(_iaaSettingSo.GmaAndroid.NativeInterstitialUnitID, _settings.AndroidAdmobNativeInterUnitId);
-				if (!string.IsNullOrEmpty(nativeInterId)) nativeInterAdapter = new AdMobNative(nativeInterId, AdFormat.NativeCollapsile);
-			}
-			
-			var nativeCollapId = _remoteConfigService?.GetValue(RemoteConfigKey.native_collap_ad_id).String 
-                                 ?? GetUnitId(_iaaSettingSo.GmaAndroid.NativeCollapsibleUnitID, _settings.AndroidAdmobNativeCollapsibleUnitId);
+
+#if COLLAPSIBLE
+			var nativeCollapId = GetRemoteOrLocalUnitId(AdRemoteConfigKeys.NativeCollapsibleAdId,
+				_iaaSettingSo.GmaAndroid.NativeCollapsibleUnitID, _settings.AndroidAdmobNativeCollapsibleUnitId);
 			if (!string.IsNullOrEmpty(nativeCollapId))
 			{
 				_gmaNativeCollapsible?.Initialize(nativeCollapId);
 			}
+#endif
 #endif // ADMOB_NATIVE
 
 #elif UNITY_IOS && ADMOB
@@ -263,7 +288,7 @@ namespace com.ktgame.services.ads
 			var interId = GetUnitId(_iaaSettingSo.GmaIos.InterstitialUnitID, _settings.IOSAdmobInterstitialUnitId);
 			if (!string.IsNullOrEmpty(interId)) interstitialAdapter = new AdMobInterstitial(interId);
 
-			var interImageId = GetUnitId(_iaaSettingSo.GmaIos.InterstitialImageUnitID, _settings.IOSAdmobInterstitialUnitId); 
+			var interImageId = GetUnitId(_iaaSettingSo.GmaIos.InterstitialImageUnitID, _settings.IOSAdmobInterstitialUnitId);
 			if (!string.IsNullOrEmpty(interImageId)) interstitialImageAdapter = new AdMobInterstitial(interImageId);
 
 			var rewardId = GetUnitId(_iaaSettingSo.GmaIos.RewardUnitID, _settings.IOSAdmobRewardedVideoUnitId);
@@ -273,11 +298,11 @@ namespace com.ktgame.services.ads
 			if (!string.IsNullOrEmpty(aoaId)) appOpenAdapter = new AdMobAppOpen(aoaId);
 #endif
 
-			ApplyDecoratorsAndInitialize(adapter, bannerAdapter, interstitialAdapter, interstitialImageAdapter, rewardVideoAdapter, appOpenAdapter, appOpenResumeAdapter, mRecAdapter, nativeAdapter, nativeInterAdapter, nativeCollapAdapter, isMain);
+			ApplyDecorators(adapter, bannerAdapter, interstitialAdapter, interstitialImageAdapter, rewardVideoAdapter, appOpenAdapter, appOpenResumeAdapter, mRecAdapter, nativeAdapter, nativeInterAdapter, nativeCollapAdapter, isMain);
 			await UniTask.CompletedTask;
 		}
 
-		private void ApplyDecoratorsAndInitialize(
+		private void ApplyDecorators(
 			IAdAdapter adapter, IBannerAdapter banner, IInterstitialAdapter inter,
 			IInterstitialAdapter interImage, IRewardVideoAdapter reward, IAppOpenAdapter appOpen,
 			IAppOpenAdapter appOpenResume, IMRecAdapter mrec, INativeAdapter native,
@@ -353,98 +378,128 @@ namespace com.ktgame.services.ads
 			if (nativeInter != null) adapter.SetNativeInter(nativeInter);
 			if (nativeCollap != null) adapter.SetNativeCollapsible(nativeCollap);
 
-			if (isMain) 
+			if (isMain)
 			{
 				Ad?.Dispose();
 				Ad = adapter;
 			}
-			else 
+			else
 			{
 				AdBackFill?.Dispose();
 				AdBackFill = adapter;
 			}
+		}
+
+		#endregion
+
+		#region Start SDKs (only after consent)
+
+		private async UniTaskVoid StartAdsWhenAllowedAsync(UniTask consentTask)
+		{
+			try
+			{
+				await consentTask;
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+			}
+
+			TryStartAds();
+		}
+
+		private void TryStartAds()
+		{
+			if (_adsStarted || !Initialized)
+			{
+				return;
+			}
+
+			if (!CanRequestAds)
+			{
+				Debug.LogWarning($"{LogTag} Consent does not allow ad requests yet. Ad SDKs NOT started; will retry on resume / after privacy form.");
+				return;
+			}
+
+			_adsStarted = true;
+			Debug.Log($"{LogTag} Consent OK -> starting ad SDKs (main: {_iaaSettingSo.MainMediation}, backfill: {_iaaSettingSo.BackfillMediation}).");
+
+			StartAdapter(Ad);
+			if (AdBackFill != null && !ReferenceEquals(AdBackFill, Ad))
+			{
+				StartAdapter(AdBackFill);
+			}
+		}
+
+		private static void StartAdapter(IAdAdapter adapter)
+		{
+			if (adapter == null)
+			{
+				return;
+			}
 
 			adapter.Initialize(isInitialized =>
 			{
-				if (isInitialized)
+				if (!isInitialized)
 				{
-					if (isMain)
-					{
-						Ad.Banner?.Load();
-						Ad.Interstitial?.Load();
-						Ad.InterstitialImage?.Load();
-						Ad.RewardVideo?.Load();
-						Ad.AppOpen?.Load();
-						Ad.AppOpenResume?.Load();
-						Ad.MRec?.Load();
-						Ad.Native?.Load();
-						Ad.NativeInter?.Load();
-						Ad.NativeCollapsible?.Load();
-					}
-					else
-					{
-						AdBackFill.Banner?.Load();
-						AdBackFill.Interstitial?.Load();
-						AdBackFill.InterstitialImage?.Load();
-						AdBackFill.RewardVideo?.Load();
-						AdBackFill.AppOpen?.Load();
-						AdBackFill.AppOpenResume?.Load();
-						AdBackFill.MRec?.Load();
-						AdBackFill.Native?.Load();
-						AdBackFill.NativeInter?.Load();
-						AdBackFill.NativeCollapsible?.Load();
-					}
+					return;
 				}
+				
+				adapter.Banner?.Load();
+				adapter.Interstitial?.Load();
+				adapter.InterstitialImage?.Load();
+				adapter.RewardVideo?.Load();
+				adapter.AppOpen?.Load();
+				adapter.AppOpenResume?.Load();
+				adapter.MRec?.Load();
+				adapter.Native?.Load();
+				adapter.NativeInter?.Load();
+				adapter.NativeCollapsible?.Load();
 			});
 		}
 
-#if ADMOB
-		private void OnConsentInfoUpdated(FormError error)
+		private void OnApplicationPause(bool paused)
 		{
-			if (error != null)
+			if (paused || _adsStarted || !Initialized || _consent == null || _consent.InProgress)
 			{
-				UnityEngine.Debug.LogError(error);
 				return;
 			}
 
-			if (ConsentInformation.IsConsentFormAvailable())
-			{
-				LoadConsentForm();
-			}
+			RetryConsentAsync().Forget();
 		}
 
-		private void LoadConsentForm()
+		private async UniTaskVoid RetryConsentAsync()
 		{
-			ConsentForm.Load(OnLoadConsentForm);
+			await _consent.GatherAsync();
+			TryStartAds();
 		}
 
-		private void OnLoadConsentForm(ConsentForm consentForm, FormError error)
+		#endregion
+
+		#region Consent (delegated to AdConsentManager)
+
+		public bool CanRequestAds => _consent != null && _consent.CanRequestAds;
+
+		public bool IsPrivacyOptionsRequired => _consent != null && _consent.IsPrivacyOptionsRequired;
+
+		public void ShowPrivacyOptionsForm(Action<string> onComplete = null)
 		{
-			if (error != null)
+			if (_consent == null)
 			{
-				Debug.LogError(error);
+				onComplete?.Invoke("AdService not initialized");
 				return;
 			}
 
-			_consentForm = consentForm;
-
-			if (ConsentInformation.ConsentStatus == ConsentStatus.Required)
-			{
-				_consentForm.Show(OnShowForm);
-			}
+			_consent.ShowPrivacyOptionsForm(onComplete);
 		}
 
-		private void OnShowForm(FormError error)
+		public void ResetConsentForDebug()
 		{
-			if (error != null)
-			{
-				Debug.LogError(error);
-				return;
-			}
-
-			LoadConsentForm();
+			_consent?.ResetForDebug();
 		}
-#endif
+
+		#endregion
+
 		public void SetPause(bool pause)
 		{
 			Ad?.SetPause(pause);

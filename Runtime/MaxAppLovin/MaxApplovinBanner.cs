@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using com.ktgame.ads.core;
 
@@ -28,12 +28,25 @@ namespace com.ktgame.ads.max_applovin
 #endif
         }
 
+        private bool _created;
+        private bool _lastLoadFailed;
+
         public void Load()
         {
-#if MAX_APPLOVIN    
-            MaxSdk.CreateBanner(UnitId, AdPosition.ToMaxApplovinBannerPosition());
-            MaxSdk.SetBannerBackgroundColor(UnitId, Color.black);
-            MaxSdk.SetBannerPlacement(UnitId, AdPlacement.Location);
+#if MAX_APPLOVIN
+            if (!_created)
+            {
+                MaxSdk.CreateBanner(UnitId, AdPosition.ToMaxApplovinBannerPosition());
+                MaxSdk.SetBannerBackgroundColor(UnitId, Color.black);
+                MaxSdk.SetBannerPlacement(UnitId, AdPlacement.Location);
+                _created = true;
+                return;
+            }
+
+            if (_lastLoadFailed)
+            {
+                MaxSdk.LoadBanner(UnitId);
+            }
 #endif
         }
 
@@ -67,6 +80,8 @@ namespace com.ktgame.ads.max_applovin
 			MaxSdkCallbacks.Banner.OnAdRevenuePaidEvent -= AdRevenuePaidHandler;
     
             MaxSdk.DestroyBanner(UnitId);
+            _created = false;
+            _lastLoadFailed = false;
 #endif
         }
 
@@ -81,12 +96,14 @@ namespace com.ktgame.ads.max_applovin
         private void LoadFailedHandler(string adUnitIdentifier, MaxSdkBase.ErrorInfo errorInfo)
         {
 			if (adUnitIdentifier != UnitId) return;
+            _lastLoadFailed = true;
             OnLoadFailed?.Invoke(errorInfo.Code.ToErrorCode(AdPlacement));
         }
 
         private void LoadSucceedHandler(string adUnitIdentifier, MaxSdkBase.AdInfo adInfo)
         {
 			if (adUnitIdentifier != UnitId) return;
+            _lastLoadFailed = false;
             OnLoadSucceeded?.Invoke(AdPlacement);
         }
 #endif

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using com.ktgame.ads.core;
 #if ADMOB
 using GoogleMobileAds.Api;
@@ -29,6 +29,9 @@ namespace com.ktgame.ads.admob
 			AppOpen = NullAppOpenAdapter.Instance;
 			MRec = NullMRecAdapter.Instance;
 			Native = NullNativeAdapter.Instance;
+			AppOpenResume = NullAppOpenAdapter.Instance;
+			NativeInter = NullNativeInterAdapter.Instance;
+			NativeCollapsible = NullNativeAdapter.Instance;
 		}
 
 		public void Initialize(Action<bool> onComplete)

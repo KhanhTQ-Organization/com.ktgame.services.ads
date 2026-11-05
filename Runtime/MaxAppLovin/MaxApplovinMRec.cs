@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using com.ktgame.ads.core;
 using UnityEngine;
 
@@ -33,11 +33,23 @@ namespace com.ktgame.ads.max_applovin
 #endif
         }
         
+        private bool _created;
+
         public void Load()
         {
-#if MAX_APPLOVIN     
-            MaxSdk.CreateMRec(UnitId, MaxSdkBase.AdViewPosition.Centered);
-            MaxSdk.SetMRecPlacement(UnitId, String.Empty);
+#if MAX_APPLOVIN
+            if (!_created)
+            {
+                MaxSdk.CreateMRec(UnitId, AdPosition.ToMaxApplovinAdViewPosition());
+                MaxSdk.SetMRecPlacement(UnitId, AdPlacement.Location);
+                _created = true;
+                return;
+            }
+
+            if (!_isReady)
+            {
+                MaxSdk.LoadMRec(UnitId);
+            }
 #endif
         }
 		
@@ -88,8 +100,8 @@ namespace com.ktgame.ads.max_applovin
 		public void UpdateMRecPosition(MRecPosition position)
 		{
 #if MAX_APPLOVIN
-			var mRecPosition = (MaxSdkBase.AdViewPosition)Enum.Parse(typeof(MaxSdkBase.AdViewPosition), position.ToString());
-			MaxSdk.UpdateMRecPosition(UnitId, mRecPosition);
+			AdPosition = position;
+			MaxSdk.UpdateMRecPosition(UnitId, position.ToMaxApplovinAdViewPosition());
 #endif
 		}
 
@@ -110,6 +122,7 @@ namespace com.ktgame.ads.max_applovin
 
 			MaxSdk.DestroyMRec(UnitId);
 			_isReady = false;
+			_created = false;
 #endif
         }
     }
