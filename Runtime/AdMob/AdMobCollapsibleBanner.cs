@@ -82,7 +82,7 @@ namespace com.ktgame.ads.admob
 			{
 				UnityMainThreadDispatcher.Instance.Enqueue(() =>
 				{
-					var impressionData = adValue.ToImpressionData(UnitId, AdFormat.Banner);
+					var impressionData = adValue.ToImpressionData(UnitId, AdFormat.Banner, _bannerView?.GetResponseInfo());
 					OnImpressionSuccess?.Invoke(impressionData);
 				});
 			};

@@ -133,7 +133,7 @@ namespace com.ktgame.ads.admob
 
 		private void AdRevenuePaidHandler(AdValue adValue)
 		{
-			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.RewardedVideo);
+			var impressionData = adValue.ToImpressionData(UnitId, AdFormat.RewardedVideo, RewardedAd?.GetResponseInfo());
 			OnPaid?.Invoke(impressionData);
 			OnImpressionSuccess?.Invoke(impressionData);
 		}

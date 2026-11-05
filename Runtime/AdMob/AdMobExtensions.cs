@@ -18,11 +18,27 @@ namespace com.ktgame.ads.admob
 			};
 		}
 
-		public static ImpressionData ToImpressionData(this GoogleMobileAds.Api.AdValue adInfo, string unitId, AdFormat adFormat)
+		/// <param name="responseInfo">Pass the ad's GetResponseInfo() so the real ad source (AdMob Network, Meta, Unity...) is reported.</param>
+		public static ImpressionData ToImpressionData(this GoogleMobileAds.Api.AdValue adInfo, string unitId, AdFormat adFormat,
+			GoogleMobileAds.Api.ResponseInfo responseInfo = null)
 		{
 			double revenue = adInfo.Value / 1_000_000.0;
-			string currency = adInfo.CurrencyCode;
-			return new ImpressionData(AdPlatform.Admob, "unknow", unitId, adFormat, adFormat.ToString(), currency, revenue);
+			string currency = string.IsNullOrEmpty(adInfo.CurrencyCode) ? "USD" : adInfo.CurrencyCode;
+			return new ImpressionData(AdPlatform.Admob, GetAdSourceName(responseInfo), unitId, adFormat, adFormat.ToString(), currency, revenue);
+		}
+
+		private static string GetAdSourceName(GoogleMobileAds.Api.ResponseInfo responseInfo)
+		{
+			try
+			{
+				var adapterInfo = responseInfo?.GetLoadedAdapterResponseInfo();
+				var name = adapterInfo?.AdSourceName;
+				return string.IsNullOrEmpty(name) ? "AdMob" : name;
+			}
+			catch (System.Exception)
+			{
+				return "AdMob";
+			}
 		}
 #endif
 	}

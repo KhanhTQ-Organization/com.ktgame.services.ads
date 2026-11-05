@@ -13,7 +13,7 @@ namespace com.ktgame.services.ads.adjust_ad_revenue
 		{
 #if ADJUST_ANALYTICS
             var adRevenue = new AdjustAdRevenue(ToAdRevenueSource(impressionData.AdPlatform));
-            adRevenue.SetRevenue(impressionData.Revenue, "USD");
+            adRevenue.SetRevenue(impressionData.Revenue, string.IsNullOrEmpty(impressionData.Currency) ? "USD" : impressionData.Currency);
             adRevenue.AdRevenueNetwork = impressionData.AdNetwork;
             adRevenue.AdRevenueUnit = impressionData.AdUnit;
             adRevenue.AdRevenuePlacement = impressionData.AdPlacement;
