@@ -17,8 +17,7 @@ namespace com.ktgame.ads.admob
 				_ => new AdError(placement, AdErrorCode.Unexpected, $"Unhandled error code: {admobError.GetCode()}")
 			};
 		}
-
-		/// <param name="responseInfo">Pass the ad's GetResponseInfo() so the real ad source (AdMob Network, Meta, Unity...) is reported.</param>
+		
 		public static ImpressionData ToImpressionData(this GoogleMobileAds.Api.AdValue adInfo, string unitId, AdFormat adFormat,
 			GoogleMobileAds.Api.ResponseInfo responseInfo = null)
 		{

@@ -90,13 +90,47 @@ namespace com.ktgame.services.ads.editor
 						Debug.Log($"{LogTag} {sdk.PackageName} {GetInstalledUpmVersion(sdk)} installed, define {sdk.DefineSymbol} applied.");
 					}
 				}
+				
+				foreach (var sdk in new[] { Max, Gma })
+				{
+					var key = PendingDeleteSettingsKey(sdk);
+					if (!SessionState.GetBool(key, false))
+					{
+						continue;
+					}
+
+					SessionState.EraseBool(key);
+					if (!IsInstalledViaUpm(sdk))
+					{
+						DeleteLeftoverFolder(sdk);
+					}
+				}
 			};
 		}
 
 		#region State
+		
+		public static bool HasLegacyInstall(UpmAdSdk sdk)
+		{
+			var folder = LegacyFolderPath(sdk);
+			if (folder == null || !Directory.Exists(folder))
+			{
+				return false;
+			}
 
-		public static bool HasLegacyInstall(UpmAdSdk sdk) =>
-			!string.IsNullOrEmpty(sdk.LegacyAssetsFolder) && Directory.Exists(Path.Combine(Application.dataPath, sdk.LegacyAssetsFolder));
+			return Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories)
+				.Any(file => file.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+				             file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase));
+		}
+		
+		public static bool HasLeftoverFolder(UpmAdSdk sdk)
+		{
+			var folder = LegacyFolderPath(sdk);
+			return folder != null && Directory.Exists(folder) && !HasLegacyInstall(sdk);
+		}
+
+		private static string LegacyFolderPath(UpmAdSdk sdk) =>
+			string.IsNullOrEmpty(sdk.LegacyAssetsFolder) ? null : Path.Combine(Application.dataPath, sdk.LegacyAssetsFolder);
 
 		public static bool IsInstalledViaUpm(UpmAdSdk sdk) => GetInstalledUpmVersion(sdk) != null;
 
@@ -238,22 +272,31 @@ namespace com.ktgame.services.ads.editor
 				return;
 			}
 
-			if (!EditorUtility.DisplayDialog($"Remove {sdk.DisplayName}",
-				    $"This removes {sdk.PackageName} from Packages/manifest.json and the {sdk.DefineSymbol} define.\nContinue?",
-				    "Remove", "Cancel"))
+			var choice = EditorUtility.DisplayDialogComplex($"Remove {sdk.DisplayName}",
+				$"This removes {sdk.PackageName} from Packages/manifest.json and the {sdk.DefineSymbol} define.\n\n" +
+				$"SDK settings in Assets/{sdk.LegacyAssetsFolder} (e.g. SDK key) can be kept for a later reinstall or deleted.",
+				"Remove (keep settings)", "Cancel", "Remove + delete settings");
+
+			// 0 = Remove (keep settings), 1 = Cancel, 2 = Remove + delete settings
+			if (choice == 1)
 			{
 				return;
 			}
 
-			EditorCoroutine.Start(RemoveRoutine(sdk));
+			EditorCoroutine.Start(RemoveRoutine(sdk, choice == 2));
 		}
 
-		private static IEnumerator RemoveRoutine(UpmAdSdk sdk)
+		private static IEnumerator RemoveRoutine(UpmAdSdk sdk, bool deleteSettings)
 		{
 			IsBusy = true;
 			try
 			{
 				ApplyDefine(sdk, false);
+
+				if (deleteSettings)
+				{
+					SessionState.SetBool(PendingDeleteSettingsKey(sdk), true);
+				}
 
 				RemoveRequest request = Client.Remove(sdk.PackageName);
 				while (!request.IsCompleted)
@@ -266,9 +309,16 @@ namespace com.ktgame.services.ads.editor
 				if (request.Status == StatusCode.Success)
 				{
 					Debug.Log($"{LogTag} {sdk.PackageName} removed.");
+
+					if (deleteSettings)
+					{
+						SessionState.EraseBool(PendingDeleteSettingsKey(sdk));
+						DeleteLeftoverFolder(sdk);
+					}
 				}
 				else
 				{
+					SessionState.EraseBool(PendingDeleteSettingsKey(sdk));
 					Debug.LogError($"{LogTag} Remove {sdk.PackageName} failed: {request.Error?.message}");
 				}
 			}
@@ -448,6 +498,26 @@ namespace com.ktgame.services.ads.editor
 		#region Helpers
 
 		private static string PendingKey(UpmAdSdk sdk) => $"ktgame.ads.{sdk.Id}.pendingDefine";
+
+		private static string PendingDeleteSettingsKey(UpmAdSdk sdk) => $"ktgame.ads.{sdk.Id}.pendingDeleteSettings";
+		
+		private static void DeleteLeftoverFolder(UpmAdSdk sdk)
+		{
+			if (!HasLeftoverFolder(sdk))
+			{
+				return;
+			}
+
+			var assetPath = $"Assets/{sdk.LegacyAssetsFolder}";
+			if (AssetDatabase.DeleteAsset(assetPath))
+			{
+				Debug.Log($"{LogTag} Deleted leftover {assetPath}.");
+			}
+			else
+			{
+				Debug.LogWarning($"{LogTag} Could not delete {assetPath}, please delete it manually.");
+			}
+		}
 
 		private static void ApplyDefine(UpmAdSdk sdk, bool add)
 		{
